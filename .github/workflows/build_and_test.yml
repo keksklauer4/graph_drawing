@@ -1,0 +1,34 @@
+name: Test project
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Get Ninja
+      run: |
+        sudo apt install ninja-build
+    - name: Get Lemon
+      run: |
+        bash prepare.sh
+    - name: Build project
+      run: |
+        mkdir build
+        cd build
+        cmake .. -GNinja
+        ninja
+    - name: Run GoogleTest
+      run: ./build/gd_test
