@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <verifier.hpp>
+#include <common/verifier.hpp>
 
 using namespace gd;
 
