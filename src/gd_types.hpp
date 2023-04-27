@@ -11,6 +11,8 @@
 #include <stack>
 #include <queue>
 
+#include <cstring>
+
 namespace gd
 {
   typedef std::pair<size_t, size_t> fuint32_pair_t;
