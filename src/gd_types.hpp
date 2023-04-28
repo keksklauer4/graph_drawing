@@ -15,7 +15,8 @@
 
 namespace gd
 {
-  typedef std::pair<size_t, size_t> fuint32_pair_t;
+  typedef std::pair<size_t, size_t> size_pair_t;
+  typedef size_pair_t vertex_pair_t;
   typedef size_t vertex_t;
 
   const static size_t UINT_UNDEF = (size_t)-1;
@@ -55,6 +56,15 @@ namespace gd
     vertex_t v;
   } edge_t;
 
+  typedef struct Coordinate
+  {
+    Coordinate(): Coordinate(0,0) {}
+    Coordinate(int x_val, int y_val): x(x_val), y(y_val) {}
+
+    int x;
+    int y;
+  } coordinate_t;
+
   template<typename K, typename V = K>
   struct PairHashFunc
   {
@@ -65,6 +75,25 @@ namespace gd
       return first ^ (second << 32) ^ (second >> 32);
     }
   };
+
+  template<typename T>
+  struct PairLexicographicOrdering
+  {
+    using pair_t = std::pair<T,T>;
+    bool operator()(const pair_t& p1, const pair_t& p2)
+    { return p1.first < p2.first || (p1.first == p2.first && p1.second < p2.second); }
+  };
+
+  inline vertex_pair_t getOrderedPair(vertex_t from, vertex_t to)
+  {
+    return from <= to ? std::make_pair(from, to) : std::make_pair(to, from);
+  }
+
+  template<typename S, typename T>
+  inline std::pair<T,S> reversePair(std::pair<S,T>& p)
+  {
+    return std::make_pair(p.second, p.first);
+  }
 
 
 }

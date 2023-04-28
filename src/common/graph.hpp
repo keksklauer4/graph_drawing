@@ -11,9 +11,10 @@ namespace gd
   {
     public:
       Graph() {}
+      Graph(Vector<vertex_pair_t>& edges);
 
-      size_t getNbVertices() const { return m_edges.size(); }
-      size_t getNbEdges() const { return m_edges.size(); }
+      size_t getNbVertices() const { return m_vertices.size(); }
+      size_t getNbEdges() const { return m_edges.size() / 2; }
       size_t getDegree(vertex_t vertex) const;
 
     private:
