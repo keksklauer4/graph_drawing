@@ -1,0 +1,13 @@
+{
+  "edges": [
+    { "source": 0, "target": 1 },
+    { "source": 1, "target": 2 },
+    { "source": 2, "target": 0 }
+  ],
+  
+  "points": [
+    { "id": 0, "x": 1, "y": 1 },
+    { "id": 1, "x": 0, "y": 0 },
+    { "id": 2, "x": 2, "y": 0 }
+  ]
+}
