@@ -31,4 +31,6 @@ jobs:
         cmake .. -GNinja
         ninja
     - name: Run GoogleTest
-      run: ./build/gd_test
+      run: |
+        cd build/
+        ./gd_test
