@@ -31,3 +31,4 @@ ninja
 #### [GoogleTest](https://github.com/google/googletest) (License: [BSD 3-Clause "New" or "Revised"](https://choosealicense.com/licenses/bsd-3-clause/))
 #### [LEMON](https://lemon.cs.elte.hu/trac/lemon) (License: [Boost Software License 1.0](https://choosealicense.com/licenses/bsl-1.0/))
 #### [rapidjson](https://github.com/Tencent/rapidjson) (License: [MIT](https://choosealicense.com/licenses/mit/))
+#### [CLI11](https://github.com/CLIUtils/CLI11) (License: [BSD 3-Clause "New" or "Revised"](https://choosealicense.com/licenses/bsd-3-clause/))
