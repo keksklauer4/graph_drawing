@@ -7,6 +7,8 @@ Our approaches to some algorithmic graph visualization project (experimental, ob
 i. e. git clone --recursive <url>
 
 1. Install git cmake g++ make curl
+Also install python3, pip3 (i. e. the package python3-pip) and install
+the library networkx using pip (i. e. pip3 install networkx)
 
 2. Obtain Lemon by running (obtains the zip and unzips it)
 bash prepare.sh
