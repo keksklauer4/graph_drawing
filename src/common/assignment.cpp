@@ -5,7 +5,7 @@
 
 using namespace gd;
 
-VertexAssignment::VertexAssignment(int num_vertices)
+VertexAssignment::VertexAssignment(size_t num_vertices)
 {
   m_assignment.resize(num_vertices);
   std::fill(m_assignment.begin(), m_assignment.end(), UINT_UNDEF);
