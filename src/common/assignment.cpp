@@ -13,8 +13,10 @@ VertexAssignment::VertexAssignment(int num_vertices)
 
 void VertexAssignment::assign(vertex_t vertex, point_id_t to)
 {
+  if (isDefined(m_assignment[vertex])) m_usedPoints.erase(m_assignment[vertex]);
   m_assignment[vertex] = to;
   m_unassigned.erase(vertex);
+  m_usedPoints.insert(to);
 }
 
 bool VertexAssignment::isAssigned(vertex_t vertex) const
@@ -25,4 +27,9 @@ bool VertexAssignment::isAssigned(vertex_t vertex) const
 point_id_t VertexAssignment::getAssigned(vertex_t vertex) const
 {
   return m_assignment.at(vertex);
+}
+
+bool VertexAssignment::isPointUsed(point_id_t p) const
+{
+  return m_usedPoints.contains(p);
 }
