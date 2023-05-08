@@ -18,6 +18,8 @@ namespace gd
       point_iterator_pair_t getPointIterator() const
       { return std::make_pair(m_points.begin(), m_points.end()); }
       size_t getNumPoints() const { return m_points.size(); }
+      const coordinate_t& getPoint(point_id_t id) const { return m_points.at(id); }
+
 
     private:
       Vector<coordinate_t> m_points;
