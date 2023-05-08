@@ -105,7 +105,7 @@ namespace gd
   }
 
   template<typename S, typename T>
-  inline std::pair<T,S> reversePair(std::pair<S,T>& p)
+  inline std::pair<T,S> reversePair(const std::pair<S,T>& p)
   {
     return std::make_pair(p.second, p.first);
   }

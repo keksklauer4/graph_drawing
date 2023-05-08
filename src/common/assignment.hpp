@@ -9,7 +9,7 @@ namespace gd
   class VertexAssignment
   {
     public:
-      VertexAssignment(int num_vertices);
+      VertexAssignment(size_t num_vertices);
 
       void assign(vertex_t vertex, point_id_t to);
       bool isAssigned(vertex_t vertex) const;
