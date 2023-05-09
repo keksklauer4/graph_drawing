@@ -32,4 +32,36 @@ Graph::Graph(Vector<vertex_pair_t>& edges)
     m_edges[edgeIdx++] = edge.second;
     m_vertices[edge.first]++;
   }
+
+  size_t cumulated = 0;
+  for (auto& vertex : m_vertices)
+  {
+    std::swap(cumulated, vertex);
+    cumulated += vertex;
+  }
+}
+
+Graph::neighbor_iterator_t Graph::getNeighborIterator(vertex_t vertex) const
+{
+  return std::make_pair(std::next(m_edges.begin() + m_vertices.at(vertex)), 
+           vertex < m_vertices.size() ? 
+                std::next(m_edges.begin() + m_vertices.at(vertex + 1))
+              : m_edges.end());
+}
+void AdjacencyArrayIterator::operator++()
+{
+  if (m_edgeIdx < m_edges->size())
+  {
+    m_edgeIdx++;
+    setAppropriateVertexIdx();
+  }
+}
+
+
+void AdjacencyArrayIterator::setAppropriateVertexIdx()
+{
+  while (m_vertexIdx + 1 < m_vertices->size() && m_edgeIdx >= m_vertices->at(m_vertexIdx + 1))
+  {
+    m_vertexIdx++;
+  }
 }

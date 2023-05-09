@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <iterator>
+#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -15,6 +16,8 @@
 
 namespace gd
 {
+  typedef int coordinate_t;
+  typedef std::pair<coordinate_t,coordinate_t> coordinate_2d_t;
   typedef std::pair<size_t, size_t> size_pair_t;
   typedef size_pair_t vertex_pair_t;
   typedef size_t vertex_t;
@@ -60,15 +63,22 @@ namespace gd
     vertex_t v;
   } edge_t;
 
-  typedef struct Coordinate
+  typedef struct Point
   {
-    Coordinate(): Coordinate(UINT_UNDEF, 0,0) {}
-    Coordinate(size_t id_val, int x_val, int y_val): id(id_val), x(x_val), y(y_val) {}
+    Point(): Point(UINT_UNDEF, 0,0) {}
+    Point(size_t id_val, int x_val, int y_val): id(id_val), x(x_val), y(y_val) {}
+
+    std::pair<coordinate_2d_t, point_id_t> getCoordToId() const
+    { return std::make_pair(coordinate_2d_t{x, y}, id); }
 
     size_t id;
-    int x;
-    int y;
-  } coordinate_t;
+    coordinate_t x;
+    coordinate_t y;
+  } point_t;
+
+  typedef std::pair<Point, Point> point_pair_t;
+
+
 
   template<typename K, typename V = K>
   struct PairHashFunc
@@ -95,7 +105,7 @@ namespace gd
   }
 
   template<typename S, typename T>
-  inline std::pair<T,S> reversePair(std::pair<S,T>& p)
+  inline std::pair<T,S> reversePair(const std::pair<S,T>& p)
   {
     return std::make_pair(p.second, p.first);
   }

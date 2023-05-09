@@ -28,7 +28,10 @@ jobs:
         pip3 install networkx        
     - name: Get Lemon
       run: |
-        bash prepare.sh
+        bash prepare.sh        
+    - name: Get CGAL
+      run: |
+        sudo apt-get install libcgal-dev
     - name: Build project
       run: |
         mkdir build
