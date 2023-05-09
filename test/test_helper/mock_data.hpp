@@ -6,6 +6,7 @@
 #include <common/graph.hpp>
 #include <common/pointset.hpp>
 #include <gd_types.hpp>
+#include <io/printing.hpp>
 
 #include <initializer_list>
 

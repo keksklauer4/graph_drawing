@@ -15,14 +15,18 @@ namespace gd
         : m_edgeIdx(numEdges) {}
 
       AdjacencyArrayIterator(const Vector<vertex_t>& vertices, const Vector<vertex_t>& edges)
-        : m_vertices(&vertices), m_edges(&edges), m_edgeIdx(0) {}
+        : m_vertices(&vertices), m_edges(&edges), m_vertexIdx(0), m_edgeIdx(0)
+          { setAppropriateVertexIdx(); }
 
       vertex_pair_t operator*() const
-      { return vertex_pair_t { m_vertices->at(m_vertexIdx), m_edges->at(m_edgeIdx) }; }
+      { return vertex_pair_t { m_vertexIdx, m_edges->at(m_edgeIdx) }; }
       void operator++();
       friend bool operator!=(const AdjacencyArrayIterator& it1, const AdjacencyArrayIterator& it2)
       { return it1.m_edgeIdx != it2.m_edgeIdx; }
   
+    private:
+      void setAppropriateVertexIdx();
+
     private:
       const Vector<vertex_t>* m_vertices;
       const Vector<vertex_t>* m_edges;
