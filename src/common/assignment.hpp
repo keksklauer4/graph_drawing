@@ -21,6 +21,7 @@ namespace gd
       Vector<point_id_t> m_assignment;
       Set<vertex_t> m_unassigned;
       Set<point_id_t> m_usedPoints;
+      Set<vertex_t> m_assignedVertices;
   };
 
 }
