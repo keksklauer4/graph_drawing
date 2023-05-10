@@ -1,7 +1,7 @@
 #include <iostream>
 #include <CLI/CLI.hpp>
 
-#include <common/verifier.hpp>
+#include <common/instance.hpp>
 #include <io/json_handling.hpp>
 
 using namespace gd;

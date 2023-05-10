@@ -33,7 +33,7 @@ namespace
     // expectTrue(doc.HasMember("height"), "Input file is invalid (6: no height)");
 
     expectTrue(doc["edges"].IsArray(), "Input file is invalid (7: edges not array))");
-    expectTrue(doc["points"].IsArray(), "Input file is invalid (8: points not array)");    
+    expectTrue(doc["points"].IsArray(), "Input file is invalid (8: points not array)");
   }
 
   void parseEdges(Document& doc, Vector<vertex_pair_t>& edges)
@@ -47,7 +47,7 @@ namespace
         && edgeArr[idx].HasMember("target"), "Edge invalid properties.");
       expectTrue(edgeArr[idx]["source"].IsInt()
         && edgeArr[idx]["target"].IsInt(), "Edge properties not int");
-      auto edge = vertex_pair_t(edgeArr[idx]["source"].GetInt(), 
+      auto edge = vertex_pair_t(edgeArr[idx]["source"].GetInt(),
         edgeArr[idx]["target"].GetInt());
       edges[2*idx] = edge;
       edges[2*idx + 1] = reversePair(edge);
@@ -65,7 +65,7 @@ namespace
         && pointsArr[idx].HasMember("y") && pointsArr[idx].HasMember("id"), "Point invalid properties.");
       expectTrue(pointsArr[idx]["x"].IsInt()
         && pointsArr[idx]["y"].IsInt() && pointsArr[idx]["id"].IsInt(), "Point properties not int");
-      points[idx] = Point{ (size_t)pointsArr[idx]["id"].GetInt64(), pointsArr[idx]["x"].GetInt(), 
+      points[idx] = Point{ (size_t)pointsArr[idx]["id"].GetInt64(), pointsArr[idx]["x"].GetInt(),
         pointsArr[idx]["y"].GetInt() };
     }
   }

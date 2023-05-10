@@ -46,7 +46,7 @@ size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& as
 
   size_t num_crossings = 0;
   CounterFakeIterator it{num_crossings};
-  CGAL::compute_intersection_points(segments.get(), 
+  CGAL::compute_intersection_points(segments.get(),
       segments.get() + graph.getNbEdges(), it);
 
   return num_crossings;
