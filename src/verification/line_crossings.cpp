@@ -4,7 +4,6 @@
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
 
-#include <common/instance.hpp>
 #include <common/assignment.hpp>
 #include <iostream>
 #include <memory>
