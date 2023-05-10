@@ -1,13 +1,11 @@
 #ifndef __GD_GRAPH_HPP__
 #define __GD_GRAPH_HPP__
 
-#include <cstddef>
 #include <gd_types.hpp>
-#include <rapidjson/rapidjson.h>
 
 namespace gd
 {
-  
+
   class AdjacencyArrayIterator
   {
     public:
@@ -23,7 +21,7 @@ namespace gd
       void operator++();
       friend bool operator!=(const AdjacencyArrayIterator& it1, const AdjacencyArrayIterator& it2)
       { return it1.m_edgeIdx != it2.m_edgeIdx; }
-  
+
     private:
       void setAppropriateVertexIdx();
 
@@ -34,7 +32,7 @@ namespace gd
       size_t m_vertexIdx;
       size_t m_edgeIdx;
   };
-  
+
   class Graph
   {
     public:

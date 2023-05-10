@@ -3,7 +3,6 @@
 
 #include <gd_types.hpp>
 #include <common/instance.hpp>
-#include <common/assignment.hpp>
 
 namespace gd
 {

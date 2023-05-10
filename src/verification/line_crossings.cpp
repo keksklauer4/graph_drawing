@@ -3,6 +3,8 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
+
+#include <common/assignment.hpp>
 #include <iostream>
 #include <memory>
 
@@ -46,7 +48,7 @@ size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& as
 
   size_t num_crossings = 0;
   CounterFakeIterator it{num_crossings};
-  CGAL::compute_intersection_points(segments.get(), 
+  CGAL::compute_intersection_points(segments.get(),
       segments.get() + graph.getNbEdges(), it);
 
   return num_crossings;
