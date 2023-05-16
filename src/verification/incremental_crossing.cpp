@@ -58,6 +58,6 @@ void IncrementalCrossing::initialPlacement(vertex_t newVertex, point_id_t p)
 }
 
 size_t IncrementalCrossing::getTotalNumCrossings() const
-{
-  return std::accumulate(m_numCrossings.begin(), m_numCrossings.end(), 0);
+{// every intersection is counted 4 times (for every vertex counted)
+  return std::accumulate(m_numCrossings.begin(), m_numCrossings.end(), 0) / 4;
 }

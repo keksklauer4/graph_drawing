@@ -68,7 +68,7 @@ namespace gd
   typedef struct Point
   {
     Point(): Point(UINT_UNDEF, 0,0) {}
-    Point(size_t id_val, int x_val, int y_val): id(id_val), x(x_val), y(y_val) {}
+    Point(size_t id_val, coordinate_t x_val, coordinate_t y_val): id(id_val), x(x_val), y(y_val) {}
 
     std::pair<coordinate_2d_t, point_id_t> getCoordToId() const
     { return std::make_pair(coordinate_2d_t{x, y}, id); }
@@ -120,6 +120,8 @@ namespace gd
   class Verifier;
   class PointSet;
   struct Instance;
+  class GreedyPlacement;
+  class PlacementVisualizer;
 }
 
 

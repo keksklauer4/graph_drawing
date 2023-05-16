@@ -16,7 +16,7 @@ bool Verifier::verify(size_t& num_crossings) const
   // 1. check every vertex assigned to distinct vertices
   // 2. check collinearity
   // 3. count crossings
-  if (!distinct() || gd::trivialCollinearityCheck(m_instance, m_assignment))
+  if (distinct() && !gd::trivialCollinearityCheck(m_instance, m_assignment))
   {
     num_crossings = gd::countCrossings(m_instance, m_assignment);
     return true;

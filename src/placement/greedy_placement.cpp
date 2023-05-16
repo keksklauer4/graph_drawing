@@ -1,20 +1,27 @@
 #include "greedy_placement.hpp"
-#include "common/misc.hpp"
-#include "gd_types.hpp"
+
+#include <common/misc.hpp>
+#include <io/placement_visualizer.hpp>
 
 #include <common/instance.hpp>
+#include <io/printing.hpp>
+
+#include <sstream>
 #include <stdexcept>
 #include <iostream>
 
 using namespace gd;
 
 
-GreedyPlacement::GreedyPlacement(const Instance& instance)
+GreedyPlacement::GreedyPlacement(const Instance& instance, PlacementVisualizer* vis)
   : m_instance(instance),
     m_assignment(instance.m_graph.getNbVertices()),
+    m_visualizer(vis),
     m_collChecker(), m_incrementalCollinearity(instance, m_assignment, m_collChecker),
     m_incrementalCrossing(instance, m_assignment)
-{ }
+{
+  if (m_visualizer != nullptr) m_visualizer->setAssignment(m_assignment);
+}
 
 const VertexAssignment& GreedyPlacement::findPlacement()
 {
@@ -32,7 +39,14 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     m_incrementalCrossing.initialPlacement(v, target);
     m_assignment.assign(v, target);
     m_unused.erase(target);
-    std::cout << "Mapped vertex " << v << " point " << target << std::endl;
+    if (m_visualizer != nullptr)
+    {
+      m_visualizer->draw([&](std::ostream& stream){
+        stream << "Placing vertex " << v << " onto point "
+          << m_instance.m_points.getPoint(target).getCoordPair()
+          << " with id " << target << std::endl;
+      });
+    }
   }
   return m_assignment;
 }
