@@ -122,3 +122,25 @@ TEST(IncrementalCollinearTest, FindCollinearPoints_Grid)
   EXPECT_TRUE(points_coll.contains(points_on_line[0]));
   EXPECT_TRUE(points_coll.contains(points_on_line[1]));
 }
+
+
+TEST(IncrementalCollinearTest, DoLinesIntersect_SimpleIntersection)
+{
+  point_pair_t line1 = point_pair_t { Point{0, 0, 0}, Point{1, 10, 10}};
+  point_pair_t line2 = point_pair_t { Point{2, 10, 0}, Point{3, 0, 10}};
+  EXPECT_TRUE(gd::intersect(line1.first, line1.second, line2.first, line2.second));
+}
+
+TEST(IncrementalCollinearTest, DoLinesIntersect_Collinear)
+{
+  point_pair_t line1 = point_pair_t { Point{0, 0, 0}, Point{1, 10, 10}};
+  point_pair_t line2 = point_pair_t { Point{2, 10, 0}, Point{3, 20, 10}};
+  EXPECT_FALSE(gd::intersect(line1.first, line1.second, line2.first, line2.second));
+}
+
+TEST(IncrementalCollinearTest, DoLinesIntersect_SlightIntersection)
+{
+  point_pair_t line1 = point_pair_t { Point{0, 0, 0}, Point{1, (int)2e8, 2}};
+  point_pair_t line2 = point_pair_t { Point{2, ((int)1e8) - 1, 0}, Point{3, ((int)1e8) - 1, 1}};
+  EXPECT_TRUE(gd::intersect(line1.first, line1.second, line2.first, line2.second));
+}
