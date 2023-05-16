@@ -32,6 +32,7 @@ namespace gd
       IncrementalCollinear(const Instance& instance,
         const VertexAssignment& assignment, CollinearFunction& collFunc);
 
+      // add check whether point itself is colinear with already set point
       void findCollinear(const line_2d_t& line) const;
 
     private:

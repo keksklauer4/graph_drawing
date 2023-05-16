@@ -12,7 +12,7 @@ namespace gd
   class GreedyPlacement
   {
     public:
-      GreedyPlacement(const Instance& instance);
+      GreedyPlacement(const Instance& instance, PlacementVisualizer* vis = nullptr);
 
       const VertexAssignment& findPlacement();
       size_t getNumCrossings() const;
@@ -23,6 +23,7 @@ namespace gd
     private:
       const Instance& m_instance;
       VertexAssignment m_assignment;
+      PlacementVisualizer* m_visualizer;
 
       CollinearCheck m_collChecker;
       IncrementalCollinear m_incrementalCollinearity;
