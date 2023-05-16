@@ -11,14 +11,14 @@ namespace gd
     virtual bool operator()(const Point&) = 0;
   };
 
-  struct CollinearCheck
+  struct CollinearCheck : CollinearFunction
   {
     CollinearCheck(): collinear(false) {}
 
-    bool operator()(const Point&)
+    bool operator()(const Point&) override
     {
       collinear = true;
-      return false; // return false to stop
+      return false; // continue? return false to stop
     }
 
     bool collinear;
@@ -29,7 +29,10 @@ namespace gd
   class IncrementalCollinear
   {
     public:
-      IncrementalCollinear(const VertexAssignment& assignment, const Instance& instance, CollinearFunction& collFunc);
+      IncrementalCollinear(const Instance& instance,
+        const VertexAssignment& assignment, CollinearFunction& collFunc);
+
+      void findCollinear(const line_2d_t& line) const;
 
     private:
       const VertexAssignment& m_assignment;
