@@ -1,4 +1,5 @@
 #include "greedy_placement.hpp"
+#include "gd_types.hpp"
 
 #include <common/misc.hpp>
 #include <io/placement_visualizer.hpp>
@@ -25,7 +26,8 @@ GreedyPlacement::GreedyPlacement(const Instance& instance, PlacementVisualizer* 
 
 const VertexAssignment& GreedyPlacement::findPlacement()
 {
-  auto pointsRange = m_instance.m_points.getPointIterator();
+  const auto& pset = m_instance.m_points;
+  auto pointsRange = pset.getPointIterator();
   for (auto it = pointsRange.first; it != pointsRange.second; ++it)
   {
     m_unused.insert(it->id);
@@ -37,13 +39,26 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     if (!isDefined(target)) throw std::runtime_error("Cant find a point to map to... :(");
 
     m_incrementalCrossing.initialPlacement(v, target);
+
+    const Point& p = pset.getPoint(target);
+    auto neighborsRange = m_instance.m_graph.getNeighborIterator(v);
+    line_2d_t line {};
+    line.first = p.getCoordPair();
+    for (auto neighbor = neighborsRange.first; neighbor != neighborsRange.second; ++neighbor)
+    {
+      if (!m_assignment.isAssigned(*neighbor)) continue;
+      line.second = m_instance.m_points.getPoint(m_assignment.getAssigned(*neighbor)).getCoordPair();
+      // we assign v to target and hence need to mark all collinear points invalid
+      m_incrementalCollinearity.findCollinear(line, true);
+    }
+
     m_assignment.assign(v, target);
     m_unused.erase(target);
     if (m_visualizer != nullptr)
     {
       m_visualizer->draw([&](std::ostream& stream){
         stream << "Placing vertex " << v << " onto point "
-          << m_instance.m_points.getPoint(target).getCoordPair()
+          << pset.getPoint(target).getCoordPair()
           << " with id " << target << std::endl;
       });
     }
@@ -67,6 +82,7 @@ point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
   line_2d_t line {};
   for (point_id_t pointid : m_unused)
   {
+    if (m_incrementalCollinearity.isPointInvalid(pointid)) continue;
     m_collChecker.collinear = false;
     const Point& p1 = m_instance.m_points.getPoint(pointid);
     line.first = p1.getCoordPair();
