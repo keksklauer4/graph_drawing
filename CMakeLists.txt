@@ -17,13 +17,15 @@ set(LEMON_ENABLE_ILOG CACHE BOOL OFF)
 set(LEMON_ENABLE_COIN CACHE BOOL OFF)
 set(LEMON_ENABLE_SOPLEX CACHE BOOL OFF)
 
+add_compile_definitions(CGAL_DISABLE_ROUNDING_MATH_CHECK)
+set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 
 # build gtest and other libs
 add_subdirectory(external)
 
 
 if ( CMAKE_COMPILER_IS_GNUCC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror -fdiagnostics-color=always")
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -frounding-math -Wextra -Wpedantic -Werror -fdiagnostics-color=always")
 endif()
 if ( MSVC )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4 /WX")

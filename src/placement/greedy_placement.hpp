@@ -15,10 +15,12 @@ namespace gd
       GreedyPlacement(const Instance& instance, PlacementVisualizer* vis = nullptr);
 
       const VertexAssignment& findPlacement();
+      bool improve(size_t num_tries);
       size_t getNumCrossings() const;
 
     private:
       point_id_t findEligiblePoint(vertex_t vertex);
+      bool tryImprove(vertex_t candidate);
 
     private:
       const Instance& m_instance;
