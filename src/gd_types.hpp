@@ -34,6 +34,13 @@ namespace gd
   template<typename T, typename Compare = std::less<T>, typename Allocator = std::allocator<T>>
   using Set = std::set<T, Compare, Allocator>;
 
+  template<typename K, typename V, typename Compare = std::less<K>, typename Allocator = std::allocator<K>>
+  using Map = std::map<K, V, Compare, Allocator>;
+
+  template<typename K, typename V, typename Compare = std::less<K>, typename Allocator = std::allocator<K>>
+  using MultiMap = std::multimap<K, V, Compare, Allocator>;
+
+
   template<class T, typename HashFunc = std::hash<T>, typename Allocator = std::allocator<T>>
   using UnorderedSet = std::unordered_set<T, HashFunc, std::equal_to<T>, Allocator>;
 
@@ -81,6 +88,7 @@ namespace gd
     coordinate_t y;
   } point_t;
 
+  typedef std::pair<point_id_t, point_id_t> pointid_pair_t;
   typedef std::pair<Point, Point> point_pair_t;
 
 

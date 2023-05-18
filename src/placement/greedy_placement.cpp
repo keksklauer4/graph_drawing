@@ -5,8 +5,10 @@
 #include <io/placement_visualizer.hpp>
 
 #include <common/instance.hpp>
+#include <common/short_term_set.hpp>
 #include <io/printing.hpp>
 
+#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
@@ -38,19 +40,8 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     point_id_t target = findEligiblePoint(v);
     if (!isDefined(target)) throw std::runtime_error("Cant find a point to map to... :(");
 
-    m_incrementalCrossing.initialPlacement(v, target);
-
-    const Point& p = pset.getPoint(target);
-    auto neighborsRange = m_instance.m_graph.getNeighborIterator(v);
-    line_2d_t line {};
-    line.first = p.getCoordPair();
-    for (auto neighbor = neighborsRange.first; neighbor != neighborsRange.second; ++neighbor)
-    {
-      if (!m_assignment.isAssigned(*neighbor)) continue;
-      line.second = m_instance.m_points.getPoint(m_assignment.getAssigned(*neighbor)).getCoordPair();
-      // we assign v to target and hence need to mark all collinear points invalid
-      m_incrementalCollinearity.findCollinear(line, true);
-    }
+    m_incrementalCrossing.place(v, target);
+    m_incrementalCollinearity.place(v, target);
 
     m_assignment.assign(v, target);
     m_unused.erase(target);
@@ -68,31 +59,10 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
 point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
 {
-  const auto& pset = m_instance.m_points;
-  auto neighbors = m_instance.m_graph.getNeighborIterator(vertex);
-  m_mappedNeighbors.clear();
-  for (auto w = neighbors.first; w != neighbors.second; ++w)
-  {
-    if (m_assignment.isAssigned(*w))
-    {
-      m_mappedNeighbors.push_back(pset.getPoint(m_assignment.getAssigned(*w)));
-    }
-  }
-
-  line_2d_t line {};
+  point_pair_t line {};
   for (point_id_t pointid : m_unused)
   {
-    if (m_incrementalCollinearity.isPointInvalid(pointid)) continue;
-    m_collChecker.collinear = false;
-    const Point& p1 = m_instance.m_points.getPoint(pointid);
-    line.first = p1.getCoordPair();
-    for (const Point& neighborPoint : m_mappedNeighbors)
-    {
-      line.second = neighborPoint.getCoordPair();
-      m_incrementalCollinearity.findCollinear(line);
-      if (m_collChecker.collinear) break;
-    }
-    if (!m_collChecker.collinear) return pointid;
+    if (m_incrementalCollinearity.isValidCandidate(vertex, pointid)) return pointid;
   }
   return POINT_UNDEF;
 }
@@ -100,4 +70,78 @@ point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
 size_t GreedyPlacement::getNumCrossings() const
 {
   return m_incrementalCrossing.getTotalNumCrossings();
+}
+
+bool GreedyPlacement::improve(size_t num_tries)
+{
+  ShortTermVertexSet tried{};
+  size_t n = m_instance.m_graph.getNbVertices();
+  bool improved = false;
+  for (size_t i = 0; i < num_tries; ++i)
+  {
+    vertex_t candidate = VERTEX_UNDEF;
+    size_t num_crossings = 0;
+
+    for (vertex_t v = 0; v < n; ++v)
+    {
+      if (m_incrementalCrossing.getNumCrossings(v) > num_crossings && !tried.contains(v))
+      {
+        candidate = v;
+        num_crossings = m_incrementalCrossing.getNumCrossings(v);
+      }
+    }
+
+    if (!isDefined(candidate)) return false;
+
+    tried.insert(candidate);
+    improved |= tryImprove(candidate);
+  }
+  return improved;
+}
+
+bool GreedyPlacement::tryImprove(vertex_t vertex)
+{
+  bool success = false;
+  m_incrementalCollinearity.deplace(vertex);
+  size_t num_crossings = m_incrementalCrossing.getNumCrossings(vertex);
+  point_id_t best = m_assignment.getAssigned(vertex);
+
+  size_t previous_crossings = num_crossings;
+
+  for (const auto& point : m_instance.m_points)
+  {
+    if (m_assignment.isPointUsed(point.id)
+      || !m_incrementalCollinearity.isValidCandidate(vertex, point.id)) continue;
+
+    size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, point.id);
+
+    if (crossings < num_crossings)
+    {
+      best = point.id;
+      num_crossings = crossings;
+      success = true;
+      if (num_crossings == 0) break;
+    }
+  }
+  m_incrementalCollinearity.place(vertex, best);
+
+  if (success)
+  {
+    point_id_t previous = m_assignment.getAssigned(vertex);
+    m_incrementalCrossing.deplace(vertex);
+    m_incrementalCrossing.place(vertex, best);
+    m_assignment.assign(vertex, best);
+
+    if (m_visualizer != nullptr)
+    {
+      m_visualizer->draw([&](std::ostream& s){
+        s << "Moving vertex " << vertex << " from point "
+          << previous << " (" << previous_crossings
+          << " crossings)  to " << best << " ( "
+          << num_crossings << " crossings).";
+      });
+    }
+  }
+
+  return success;
 }
