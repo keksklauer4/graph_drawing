@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <iterator>
+#include <ostream>
 #include <utility>
 #include <vector>
 #include <unordered_map>

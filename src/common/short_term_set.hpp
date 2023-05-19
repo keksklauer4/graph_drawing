@@ -10,7 +10,7 @@ namespace gd
   class ShortTermSet
   {
     public:
-      ShortTermSet(){ static_assert(size > 0, "Set needs to have size > 0!"); }
+      ShortTermSet(): m_elementIdx(0) { static_assert(size > 0, "Set needs to have size > 0!"); }
 
       void insert(T element)
       {

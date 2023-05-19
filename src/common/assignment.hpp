@@ -12,6 +12,7 @@ namespace gd
       VertexAssignment(size_t num_vertices);
 
       void assign(vertex_t vertex, point_id_t to);
+      void unassign(vertex_t vertex);
       bool isAssigned(vertex_t vertex) const;
       point_id_t getAssigned(vertex_t vertex) const;
       bool isPointUsed(point_id_t p) const;
