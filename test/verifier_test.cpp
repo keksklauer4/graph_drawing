@@ -99,6 +99,41 @@ TEST(VerifierTest, CrossingCounting_SimpleK4)
   EXPECT_EQ(gd::countCrossings(instance, assignment), 1);
 }
 
+TEST(VerifierTest, DISABLED_CrossingCounting_Degenerate_SamePoint)
+{
+  instance_t instance = create_mock_instance(
+    {
+      PAIR(0, 1),
+      PAIR(2, 3),
+      PAIR(4, 5),
+      PAIR(6, 7)
+    },
+    {
+      Point(0, 1, 0),
+      Point(1, -1, 0),
+
+      Point(2, 0, 1),
+      Point(3, 0, -1),
+
+      Point(4, 1, 1),
+      Point(5, -1, -1),
+
+      Point(6, -1, 1),
+      Point(7, 1, -1),
+    });
+  VertexAssignment assignment = create_mock_assignment(8, {
+    PAIR(0, 0),
+    PAIR(1, 1),
+    PAIR(2, 2),
+    PAIR(3, 3),
+    PAIR(4, 4),
+    PAIR(5, 5),
+    PAIR(6, 6),
+    PAIR(7, 7)
+  });
+  EXPECT_EQ(gd::countCrossings(instance, assignment), 4);
+}
+
 TEST(VerifierTest, CrossingCounting_NoCrossings)
 {
   instance_t instance = create_mock_instance(

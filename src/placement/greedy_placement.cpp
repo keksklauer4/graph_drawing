@@ -1,6 +1,7 @@
 #include "greedy_placement.hpp"
 #include "gd_types.hpp"
 
+#include <cassert>
 #include <common/misc.hpp>
 #include <io/placement_visualizer.hpp>
 
@@ -39,7 +40,6 @@ const VertexAssignment& GreedyPlacement::findPlacement()
   {
     point_id_t target = findEligiblePoint(v);
     if (!isDefined(target)) throw std::runtime_error("Cant find a point to map to... :(");
-
     m_incrementalCrossing.place(v, target);
     m_incrementalCollinearity.place(v, target);
 
@@ -54,6 +54,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       });
     }
   }
+
   return m_assignment;
 }
 
@@ -75,14 +76,13 @@ size_t GreedyPlacement::getNumCrossings() const
 bool GreedyPlacement::improve(size_t num_tries)
 {
   ShortTermVertexSet tried{};
-  size_t n = m_instance.m_graph.getNbVertices();
   bool improved = false;
   for (size_t i = 0; i < num_tries; ++i)
   {
     vertex_t candidate = VERTEX_UNDEF;
     size_t num_crossings = 0;
 
-    for (vertex_t v = 0; v < n; ++v)
+    for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)
     {
       if (m_incrementalCrossing.getNumCrossings(v) > num_crossings && !tried.contains(v))
       {
@@ -92,7 +92,6 @@ bool GreedyPlacement::improve(size_t num_tries)
     }
 
     if (!isDefined(candidate)) return false;
-
     tried.insert(candidate);
     improved |= tryImprove(candidate);
   }
@@ -128,7 +127,8 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
   if (success)
   {
     point_id_t previous = m_assignment.getAssigned(vertex);
-    m_incrementalCrossing.deplace(vertex);
+    m_incrementalCrossing.deplace(vertex, previous);
+
     m_incrementalCrossing.place(vertex, best);
     m_assignment.assign(vertex, best);
 
