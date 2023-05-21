@@ -1,6 +1,7 @@
 #ifndef __MAJORMINER_RANDOM_GEN_HPP_
 #define __MAJORMINER_RANDOM_GEN_HPP_
 
+#include <cassert>
 #include <cstddef>
 #include <random>
 #include <mutex>
@@ -24,6 +25,13 @@ namespace gd
         std::shuffle(data, data + size, m_shuffleGenerator);
 
         m_shuffleLock.unlock();
+      }
+
+      template<typename T>
+      const T& getRandom(const Vector<T>& vec)
+      {
+        assert(vec.size() != 0 && "Vector should not be empty when sampling from it!");
+        return vec.at(getRandomUint(vec.size()));
       }
 
 

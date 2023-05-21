@@ -66,7 +66,7 @@ TEST(PlacementTest, ImpossiblePlacement_AllCollinear)
 
 TEST(PlacementTest, GData_Graph)
 {
-  instance_t instance = gd::parseInstanceFromFile("test/gdata/rome/grafo118.43.graphml.json");
+  instance_t instance = gd::parseInstanceFromFile("gdata/rome/grafo118.43.graphml.json");
   PlacementVisualizer visualizer {instance, "Greedy/Rome118.43Graph/Rome118.43Graph"};
   GreedyPlacement placer {instance, &visualizer};
   const auto& assignment = placer.findPlacement();
@@ -83,7 +83,7 @@ TEST(PlacementTest, GData_Graph)
 
 
 
-TEST(PlacementTest, GData_Graph_4K4)
+TEST(PlacementTest, Graph_4K4)
 {
   instance_t instance = gd::parseInstanceFromFile("data/4K4.json");
   PlacementVisualizer visualizer {instance, "Greedy/4K4/4K4"};
