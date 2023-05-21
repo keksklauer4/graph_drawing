@@ -30,9 +30,9 @@ namespace gd
     return PointSet(std::move(points));
   }
 
-  inline VertexAssignment create_mock_assignment(size_t num_vertices, std::initializer_list<std::pair<vertex_t, point_id_t>> as)
+  inline VertexAssignment create_mock_assignment(const Instance& instance, std::initializer_list<std::pair<vertex_t, point_id_t>> as)
   {
-    VertexAssignment assignment {num_vertices};
+    VertexAssignment assignment {instance};
     for (const auto& assigned : as) assignment.assign(assigned.first, assigned.second);
     return assignment;
   }

@@ -66,9 +66,9 @@ size_t IncrementalCrossing::calculateCrossing(vertex_t vertex, point_id_t point)
   return checkPlacement(vertex, point, false, 0);
 }
 
-void IncrementalCrossing::place(vertex_t vertex, point_id_t point)
+size_t IncrementalCrossing::place(vertex_t vertex, point_id_t point)
 {
-  checkPlacement(vertex, point, true, +1);
+  return checkPlacement(vertex, point, true, +1);
 }
 void IncrementalCrossing::deplace(vertex_t vertex, point_id_t point)
 {

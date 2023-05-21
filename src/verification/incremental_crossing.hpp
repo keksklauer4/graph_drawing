@@ -12,7 +12,7 @@ namespace gd
       IncrementalCrossing(const Instance& instance, const VertexAssignment& assignment);
 
       size_t calculateCrossing(vertex_t vertex, point_id_t point);
-      void place(vertex_t vertex, point_id_t point);
+      size_t place(vertex_t vertex, point_id_t point);
       void deplace(vertex_t vertex, point_id_t point);
 
       size_t getTotalNumCrossings() const;
