@@ -11,6 +11,8 @@
 
 #include <numeric>
 
+#include <io/printing.hpp>
+
 #define SCALE 2
 
 using namespace gd;
