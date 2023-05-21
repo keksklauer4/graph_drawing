@@ -13,6 +13,7 @@
 #include <common/kd_tree.hpp>
 #include <io/printing.hpp>
 #include <placement/greedy_placement.hpp>
+#include <placement/vertex_order.hpp>
 
 #include <ostream>
 #include <sstream>
@@ -41,20 +42,36 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     m_unused.insert(it->id);
   }
 
-  for (vertex_t v = 0; v != m_instance.m_graph.getNbVertices(); ++v)
+  Vector<vertex_t> embedded{};
+  embedded.reserve(m_instance.m_graph.getNbVertices());
+  MaxEmbeddedVertexOrder order{ m_instance };
+  vertex_t vertex = VERTEX_UNDEF;
+
+  RandomGen random{};
+  ShortTermVertexSet tried{};
+  while (isDefined((vertex = order.getNext())))
   {
-    point_id_t target = findEligiblePoint(v);
+    point_id_t target = findEligiblePoint(vertex);
     if (!isDefined(target)) throw std::runtime_error("Can't find a point to map to... :(");
-    placeInitial(v, target);
+    placeInitial(vertex, target);
+    embedded.push_back(vertex);
     if (m_visualizer != nullptr)
     {
       m_visualizer->draw([&](std::ostream& stream){
-        stream << "Placing vertex " << v << " onto point "
+        stream << "Placing vertex " << vertex << " onto point "
           << pset.getPoint(target).getCoordPair()
           << " with id " << target <<  ". [total: "
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
     }
+
+    for (int i = 0; i < 20; ++i)
+    {
+      vertex_t v = random.getRandom(embedded);
+      if (tried.contains(v)) continue;
+      tryImprove(v);
+    }
+    tried.clear();
   }
 
   return m_assignment;
@@ -132,7 +149,6 @@ bool GreedyPlacement::improve(size_t num_tries)
     if (!choice(DESTRUC_P)) success = tryImprove(candidate);
     else success = circularRebuild(kdtree, temp, candidate);
     improved |= success;
-    if (success) std::cout << "Iteration "<< i  << "  " << candidate << std::endl;
   }
   return improved;
 }
@@ -185,8 +201,6 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
 
   return success;
 }
-
-#include <io/printing.hpp>
 
 constexpr size_t DESTRUC_SIZE = 3;
 bool GreedyPlacement::circularRebuild(const KdTree& kdtree, Vector<VertexPointPair>& destructed, vertex_t candidate)
@@ -247,7 +261,6 @@ bool GreedyPlacement::circularRebuild(const KdTree& kdtree, Vector<VertexPointPa
   }
   else if (m_visualizer != nullptr)
   {
-    std::cout << "Successful!!!!" << std::endl;
     m_visualizer->draw([&](std::ostream& s){
       s << "Replacing " << size << " vertices: ";
       for (size_t idx = 0; idx < size; ++idx)
