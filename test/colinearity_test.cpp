@@ -42,7 +42,7 @@ TEST(VerifierTest, SimpleColinearityTestGrid)
       Point(14, 2, 3),
       Point(15, 3, 3),
     });
-  VertexAssignment assignment = create_mock_assignment(5, {
+  VertexAssignment assignment = create_mock_assignment(instance, {
     PAIR(0, 0),
     PAIR(1, 3),
     PAIR(2, 12),
@@ -105,7 +105,7 @@ TEST(VerifierTest, SimpleColinearityTestGridNegativ)
       Point(14, 0, 1),
       Point(15, 1, 1),
     });
-  VertexAssignment assignment = create_mock_assignment(5, {
+  VertexAssignment assignment = create_mock_assignment(instance, {
     PAIR(0, 0),
     PAIR(1, 3),
     PAIR(2, 12),
@@ -150,7 +150,7 @@ TEST(VerifierTest, NoColinearityLongEdge)
       Point(2, 1e8 + 1, 0),
       Point(3, 1e8 + 1, 1)
     });
-  VertexAssignment assignment = create_mock_assignment(4, {
+  VertexAssignment assignment = create_mock_assignment(instance, {
     PAIR(0, 0),
     PAIR(1, 1),
     PAIR(2, 2),

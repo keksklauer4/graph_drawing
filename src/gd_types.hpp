@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <iterator>
+#include <limits>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -28,6 +29,9 @@ namespace gd
   const static size_t UINT_UNDEF = (size_t)-1;
   const static vertex_t VERTEX_UNDEF = (size_t)-1;
   const static vertex_t POINT_UNDEF = (size_t)-1;
+  const static double DOUBLE_MAX = std::numeric_limits<double>::max();
+  const static double DOUBLE_MIN = std::numeric_limits<double>::min();
+
 
   template<typename T, typename Allocator = std::allocator<T>>
   using Vector = std::vector<T, Allocator>;
@@ -124,6 +128,18 @@ namespace gd
     return std::make_pair(p.second, p.first);
   }
 
+
+  // for better readability
+  #define NAMED_SIZE_PAIR(struct_name, type1, name1, type2, name2)  \
+    struct struct_name {                                            \
+      struct_name(): name1(UINT_UNDEF), name2(UINT_UNDEF) {}        \
+      struct_name(type1 v1, type2 v2): name1(v1), name2(v2) {}      \
+      type1 name1;                                                  \
+      type2 name2;                                                  \
+    };
+
+  NAMED_SIZE_PAIR(VertexPointPair, vertex_t, vertex, point_id_t, point)
+
   class VertexAssignment;
   class Graph;
   class Verifier;
@@ -131,6 +147,7 @@ namespace gd
   struct Instance;
   class GreedyPlacement;
   class PlacementVisualizer;
+  class KdTree;
 }
 
 
