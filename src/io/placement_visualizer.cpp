@@ -147,8 +147,7 @@ void PlacementVisualizer::calculateGCDScaling()
     if (p.x != 0) lowerTo(m_gcdScaling, std::gcd(m_gcdScaling, p.x));
     if (p.y != 0) lowerTo(m_gcdScaling, std::gcd(m_gcdScaling, p.y));
   }
-  std::cout << "GCD of coordinates " << m_gcdScaling << std::endl;
-  if (m_gcdScaling == 0) m_gcdScaling = 1;
+  if (m_gcdScaling == 0 || !isDefined(m_gcdScaling)) m_gcdScaling = 1;
 }
 
 
