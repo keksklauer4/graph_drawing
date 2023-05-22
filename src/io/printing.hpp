@@ -1,7 +1,6 @@
 #ifndef __GD_PRINTING_HPP__
 #define __GD_PRINTING_HPP__
 
-#include "common/instance.hpp"
 #include <iostream>
 #include <gd_types.hpp>
 #include <ostream>

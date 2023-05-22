@@ -16,7 +16,7 @@ namespace gd
       void setAssignment(const VertexAssignment& assignment)
       { m_assignment = &assignment; }
 
-    protected:
+    private:
       double getWidth() const { return m_width; }
       double getHeight() const { return m_height; }
 
@@ -25,7 +25,6 @@ namespace gd
       double getPointRadius() const { return getRadius() * 0.5; }
       double getStrokeWidth() const { return 6; }
 
-    private:
       void initialize();
       void writeToFile();
       void setupDrawing();
@@ -36,6 +35,7 @@ namespace gd
       void drawEdges();
       const std::string& getColor(size_t node);
       Point translatePoint(const Point& p) const;
+      void calculateGCDScaling();
 
     public:
       void draw(const char* title = nullptr);
@@ -63,6 +63,7 @@ namespace gd
       size_t m_width;
       size_t m_height;
       coordinate_t m_scaling;
+      coordinate_t m_gcdScaling;
   };
 }
 
