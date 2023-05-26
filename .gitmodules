@@ -4,3 +4,6 @@
 [submodule "external/cli11"]
 	path = external/cli11
 	url = https://github.com/CLIUtils/CLI11.git
+[submodule "external/EvalMaxSAT"]
+	path = external/EvalMaxSAT
+	url = git@github.com:keksklauer4/EvalMaxSAT.git
