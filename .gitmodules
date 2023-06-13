@@ -10,3 +10,6 @@
 [submodule "external/Eigen"]
 	path = external/Eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "external/hclust"]
+	path = external/hclust
+	url = https://github.com/keksklauer4/hclust-cpp.git
