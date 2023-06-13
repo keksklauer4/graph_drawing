@@ -1,16 +1,18 @@
 #include "placement_visualizer.hpp"
-#include "common/misc.hpp"
-#include "gd_types.hpp"
+
+#include <common/misc.hpp>
+#include <common/assignment.hpp>
 
 #include <cassert>
 #include <cstddef>
 #include <fstream>
 #include <filesystem>
 
-#include <common/assignment.hpp>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
+
+#include <placement/divide/point_clustering.hpp>
 
 using namespace gd;
 namespace fs = std::filesystem;
@@ -65,14 +67,39 @@ void PlacementVisualizer::draw(const char* title)
   finishDrawing();
 }
 
+void PlacementVisualizer::drawClustering()
+{
+  assert(m_pointClustering != nullptr && "Point clustering not set!");
+  DrawingMode mode = m_mode;
+  m_mode = DRAW_ONLY_CLUSTERING;
+  setupDrawing();
+  const char* title = "Clustering of the point set";
+  m_svg << title;
+  finishDrawing();
+  m_mode = mode;
+}
+
 void PlacementVisualizer::finishDrawing()
 {
   m_svg << "</text>";
-  drawEdges();
-  drawNodes();
+  if(m_mode != DRAW_ONLY_CLUSTERING)
+  {
+    drawEdges();
+    drawNodes();
+  }
+  else drawClusteredNodes();
 
   m_svg << "</svg>";
   writeToFile();
+}
+
+void PlacementVisualizer::drawClusteredNodes()
+{
+  for (const auto& point : m_instance.m_points)
+  {
+    drawPoint(translatePoint(point), getRadius(),
+        getColor(m_pointClustering->getCluster(point.id)));
+  }
 }
 
 const std::string& PlacementVisualizer::getColor(size_t node)
