@@ -6,7 +6,25 @@
 namespace gd
 {
 
-  class 
+  struct Cluster
+  {
+    Cluster(): m_offset(UINT_UNDEF), m_size(0) {}
+
+    size_t m_offset;
+    size_t m_size;
+  };
+
+  class PointClustering
+  {
+    public:
+      PointClustering(const Instance& instance);
+      void cluster();
+
+    private:
+      const Instance& m_instance;
+      Vector<Cluster> m_clusters;
+      Vector<point_id_t> m_points;
+  };
 
 
 }
