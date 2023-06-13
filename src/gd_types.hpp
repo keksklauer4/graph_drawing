@@ -115,7 +115,7 @@ namespace gd
   struct PairLexicographicOrdering
   {
     using pair_t = std::pair<T,T>;
-    bool operator()(const pair_t& p1, const pair_t& p2)
+    bool operator()(const pair_t& p1, const pair_t& p2) const
     { return p1.first < p2.first || (p1.first == p2.first && p1.second < p2.second); }
   };
 
@@ -144,6 +144,8 @@ namespace gd
   NAMED_SIZE_PAIR(VertexDegreePair, vertex_t, vertex, size_t, degree)
   inline bool operator<(const VertexDegreePair& p1, const VertexDegreePair& p2)
   { return p1.degree < p2.degree; }
+
+  typedef Map<coordinate_2d_t, point_id_t, PairLexicographicOrdering<coordinate_t>> CoordinateToIdMap;
 
   class VertexAssignment;
   class Graph;
