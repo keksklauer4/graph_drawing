@@ -34,7 +34,7 @@ int main(int argc, const char** argv)
   std::vector<int> po2c{0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3};
   std::vector<int> p2c{0, 1, 2, 3};
   std::vector<int> c2p{0, 1, 2, 3};
-  int max_iterations = 500;
+  int max_iterations = 5000;
   SATPlacement sat = SATPlacement(instance,partitions, clusters, n2p,po2c, p2c, c2p, max_iterations);
 
 
