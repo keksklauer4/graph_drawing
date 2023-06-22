@@ -43,6 +43,8 @@ namespace gd
       void build_clauses_at_most_one_node_per_point_local();
       void add_collinearity_clauses1();
       vertex_pair_t get_edge_with_most_crossings();
+      int get_map_node_to_point(int, int);
+      void reserve_variables_map_node_to_point_local();
 
     private:
       const Instance& m_instance;
@@ -60,7 +62,8 @@ namespace gd
       std::vector<int> map_node_to_point;
       std::vector<int> mapped_neighbors;
       VertexAssignment m_assignment;
-      int crossings = 1000;
+      std::vector<std::vector<int>> map_node_to_point_local;
+      int crossings = 10000000;
   };
 
 }

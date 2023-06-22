@@ -4,6 +4,7 @@
 #include "gd_types.hpp"
 #include "glucose/core/Solver.h"
 #include "verification/verification_utils.hpp"
+#include <algorithm>
 #include <utility>
 #include <verification/line_crossings.hpp>
 #include <iostream>
@@ -38,12 +39,15 @@ void SATPlacement::reserve_variables(){
         point_is_used[i] = SATPlacement::solver->newVar();
     }
 
+    reserve_variables_map_node_to_point_local();
+    /*
     map_node_to_point = std::vector<int>(m_num_points * m_num_nodes, 0);
     for (int i = 0; i < m_num_nodes; i++) {
         for(int j = 0; j < m_num_points; j++){
             map_node_to_point[i * m_num_points + j] = SATPlacement::solver->newVar();
         }
     }
+    */
 }
 void SATPlacement::reserve_variables_mapped_neighbors(){
     mapped_neighbors = std::vector<int>(m_num_points * m_num_points, 0);
@@ -80,6 +84,45 @@ void SATPlacement::print_mapped_neighbors(){
     }
 }
 
+void SATPlacement::reserve_variables_map_node_to_point_local(){
+    map_node_to_point_local = std::vector<std::vector<int>>(m_partitions.size());
+    for(int i = 0; i < m_partitions.size(); i++){
+        map_node_to_point_local[i] = std::vector<int>(m_partitions[i].size() * m_clusters[m_partition_2_cluster[i]].size(), 0);
+    }
+
+    for(int i = 0; i < m_partitions.size(); i++){
+        int num_nodes = m_partitions[i].size();
+        int num_points = m_clusters[m_partition_2_cluster[i]].size();
+        for(int j = 0; j < num_nodes; j++){
+            for(int k = 0; k < num_points; k++){
+                map_node_to_point_local[i][j * num_points + k] = solver->newVar();
+            }
+        }
+    }    
+}
+int SATPlacement::get_map_node_to_point(int i, int j){
+    //std::cout << i << ", " << j << std::endl;
+    if (m_node_2_partition[i] != m_cluster_2_partition[m_point_2_cluster[j]]){
+        std::cout << "cluster does not match the partition" << std::endl;
+        return 0;
+    } 
+    int cluster = m_point_2_cluster[j];
+    int partition = m_node_2_partition[i];
+    //std::cout << "cluster "<< cluster << std::endl;
+
+    auto it_point = std::find(m_clusters[cluster].begin(), m_clusters[cluster].end(), j);
+    auto it_node = std::find(m_partitions[partition].begin(), m_partitions[partition].end(), i);
+    if(it_point != m_clusters[cluster].end() && it_node != m_partitions[partition].end()){
+        int index_point = it_point - m_clusters[cluster].begin();
+        int index_node = it_node - m_partitions[partition].begin();
+        int num_points = m_clusters[cluster].size();
+        return map_node_to_point_local[partition][index_node * num_points + index_point];
+    }else{
+        //std::cout << "no such point found in the cluster" << std::endl;
+        return 0;
+    }
+}
+
 void SATPlacement::build_local_clauses(){
     std::cout << "reserving variables" << std::endl;
     reserve_variables();
@@ -88,7 +131,7 @@ void SATPlacement::build_local_clauses(){
     //print_mapped_neighbors();
     std::cout << "build mapped to one clauses" << std::endl;
     build_clauses_mapped_to_one();
-    std::cout << "atmost one per point clauses" << std::endl;
+    std::cout << "build atmost one per point clauses" << std::endl;
     //build_clauses_at_most_one_node_per_point();
     build_clauses_at_most_one_node_per_point_local();
     std::cout << "build one mapped equiv used clauses" << std::endl;
@@ -109,9 +152,10 @@ void SATPlacement::build_clauses_mapped_to_one(){
         int n_points = m_clusters[cluster].size();
         std::vector<int> at_least_one(n_points, 0);
         for(int j = 0; j < n_points; j++){
-            int point = 
-            at_least_one[j] = map_node_to_point[i * m_num_points + m_clusters[cluster][j]];
+            //at_least_one[j] = map_node_to_point[i * m_num_points + m_clusters[cluster][j]];
+            at_least_one[j] = get_map_node_to_point(i, m_clusters[cluster][j]);
         }
+        //std::cout << at_least_one << std::endl;
         solver->addClause(at_least_one);
         //solver->addClause({*solver->newCard(at_least_one) <= 1});
         solver->AtMostOne(at_least_one);
@@ -134,7 +178,8 @@ void SATPlacement::build_clauses_at_most_one_node_per_point_local(){
         int num_nodes = m_partitions[part].size();
         std::vector<int> at_most_one(num_nodes);
         for(int i = 0; i < num_nodes; i++){
-            at_most_one[i] = map_node_to_point[m_partitions[part][i] * m_num_points + j];
+            //at_most_one[i] = map_node_to_point[m_partitions[part][i] * m_num_points + j];
+            at_most_one[i] = get_map_node_to_point(m_partitions[part][i], j);
         }
         solver->AtMostOne(at_most_one);
     }
@@ -146,7 +191,8 @@ void SATPlacement::build_clauses_mapped_equiv_used(){
         int n_nodes = m_partitions[partition].size();
         std::vector<int> equiv(n_nodes + 1, 0);
         for(int i = 0; i < n_nodes; i++){
-            equiv[i] = map_node_to_point[m_partitions[partition][i] * m_num_points + j];
+            //equiv[i] = map_node_to_point[m_partitions[partition][i] * m_num_points + j];
+            equiv[i] = get_map_node_to_point(m_partitions[partition][i], j);
             solver->addClause({-equiv[i], point_is_used[j]});
         }
         equiv[equiv.size() - 1] = -point_is_used[j];
@@ -169,8 +215,10 @@ void SATPlacement::build_clauses_no_collinearity(){
                             if(t != j && t != l){
                                 Point r = m_instance.m_points.getPoint(m_clusters[cluster][t]);
                                 if (gd::isOnLine(line_coords, r)) {
-                                    int mij = map_node_to_point[edge.first * m_num_points + m_clusters[cluster][j]];
-                                    int mkl = map_node_to_point[edge.second * m_num_points + m_clusters[cluster][l]];
+                                    //int mij = map_node_to_point[edge.first * m_num_points + m_clusters[cluster][j]];
+                                    int mij = get_map_node_to_point(edge.first, m_clusters[cluster][j]);
+                                    //int mkl = map_node_to_point[edge.second * m_num_points + m_clusters[cluster][l]];
+                                    int mkl = get_map_node_to_point(edge.second, m_clusters[cluster][l]);
                                     solver->addClause({-mij, -mkl, -point_is_used[m_clusters[cluster][t]]});
                                 }
                             }
@@ -199,8 +247,10 @@ void SATPlacement::build_clauses_local_crossing(){
                 for(int j = 0; j < n_points; j++){
                     for(int l = 0; l < n_points; l++){
                         if(j != l){
-                            int mij = map_node_to_point[edge.first * m_num_points + m_clusters[c][j]];
-                            int mkl = map_node_to_point[edge.second * m_num_points + m_clusters[c][l]];
+                            //int mij = map_node_to_point[edge.first * m_num_points + m_clusters[c][j]];
+                            int mij = get_map_node_to_point(edge.first, m_clusters[c][j]);
+                            //int mkl = map_node_to_point[edge.second * m_num_points + m_clusters[c][l]];
+                            int mkl = get_map_node_to_point(edge.second, m_clusters[c][l]);
                             solver->addClause({-mij, -mkl, mapped_neighbors_local[j * n_points + l]});
                         }
                     }
@@ -278,9 +328,14 @@ bool SATPlacement::solve(){
 }
 
 void SATPlacement::assign_all(){
+    std::cout << "assign all" << std::endl;
     for(int i = 0; i < m_num_nodes; i++){
         for(int j = 0; j < m_num_points; j++){
-            if(solver->getValue(map_node_to_point[i * m_num_points + j])){
+            //if(solver->getValue(map_node_to_point[i * m_num_points + j])){
+            //    m_assignment.assign(i, j);
+            //}
+            if(m_node_2_partition[i] != m_cluster_2_partition[m_point_2_cluster[j]]) continue;
+            if(solver->getValue(get_map_node_to_point(i, j))){
                 m_assignment.assign(i, j);
             }
         }
@@ -307,7 +362,12 @@ void SATPlacement::print_mapping(){
 void SATPlacement::copy_assignment(std::vector<int>& current_best_assignment){
     for(int i = 0; i < m_num_nodes; i++){
         for(int j = 0; j < m_num_points; j++){
-            if(solver->getValue(map_node_to_point[i * m_num_points + j])){
+            /*if(solver->getValue(map_node_to_point[i * m_num_points + j])){
+                current_best_assignment[i] = j;
+                //std::cout << "node " << i << " is mapped to point " << j << std::endl;
+            }*/
+            if(m_node_2_partition[i] != m_cluster_2_partition[m_point_2_cluster[j]]) continue;
+            if(solver->getValue(get_map_node_to_point(i, j))){
                 current_best_assignment[i] = j;
                 //std::cout << "node " << i << " is mapped to point " << j << std::endl;
             }
@@ -366,8 +426,10 @@ void SATPlacement::add_collinearity_clauses(){
                         Point r = m_instance.m_points.getPoint(n);
                         line_2d_t line_coords = std::make_pair(p.getCoordPair(), q.getCoordPair());
                         if(isOnLine(line_coords, r)){
-                            int mij = map_node_to_point[m_assignment.getAssignedVertex(j) * m_num_points + j];
-                            int mkl = map_node_to_point[m_assignment.getAssignedVertex(l) * m_num_points + l];
+                            //int mij = map_node_to_point[m_assignment.getAssignedVertex(j) * m_num_points + j];
+                            int mij = get_map_node_to_point(m_assignment.getAssignedVertex(j), j);
+                            //int mkl = map_node_to_point[m_assignment.getAssignedVertex(l) * m_num_points + l];
+                            int mkl = get_map_node_to_point(m_assignment.getAssignedVertex(l), l);
                             //std::cout << m_assignment.getAssignedVertex(j) * m_num_points + j << "\t" << m_assignment.getAssignedVertex(l) * m_num_points + l << "\t" << point_is_used[n] << std::endl;
                             solver->addClause({-mij, -mkl, -point_is_used[n]});
                         }
@@ -393,8 +455,10 @@ void SATPlacement::add_collinearity_clauses1(){
                     if(gd::isOnLine(line_coords, r)){
                         //std::cout << "the point " << rid << " is used by the node " << m_assignment.getAssignedVertex(rid) <<" and the edge from node " << edge.first << " to node " << edge.second << " exists" << std::endl;
                         failed = true;
-                        int mij = map_node_to_point[m_assignment.getAssignedVertex(p.id) * m_num_points + p.id];
-                        int mkl = map_node_to_point[m_assignment.getAssignedVertex(q.id) * m_num_points + q.id];
+                        //int mij = map_node_to_point[m_assignment.getAssignedVertex(p.id) * m_num_points + p.id];
+                        int mij = get_map_node_to_point(m_assignment.getAssignedVertex(p.id), p.id);
+                        //int mkl = map_node_to_point[m_assignment.getAssignedVertex(q.id) * m_num_points + q.id];
+                        int mkl = get_map_node_to_point(m_assignment.getAssignedVertex(q.id), q.id);
                         solver->addClause({-mij, -mkl, -point_is_used[rid]});
                     }
                 }
@@ -468,8 +532,10 @@ vertex_pair_t SATPlacement::get_edge_with_most_crossings(){
     int k = edge_with_most_crossings.second;
     int j = m_assignment.getAssigned(i);
     int l = m_assignment.getAssigned(k);
-    int mij = map_node_to_point[i * m_num_points + j];
-    int mkl = map_node_to_point[k * m_num_points + l];
+    //int mij = map_node_to_point[i * m_num_points + j];
+    int mij = get_map_node_to_point(i, j);
+    //int mkl = map_node_to_point[k * m_num_points + l];
+    int mkl = get_map_node_to_point(k, l);
     solver->addClause({-mij, -mkl});
     std::cout << "edge " << edge_with_most_crossings.first << ", " << edge_with_most_crossings.second << " has " << edgeMap[edge_with_most_crossings] << " crossings" << std::endl;
     return edge_with_most_crossings;
@@ -498,7 +564,8 @@ void SATPlacement::iterative_solving(){
                 int last_index = 0;
                 for(int i = 0; i < m_num_nodes; i++){
                     if(i == edge_with_most_crossings.first || i == edge_with_most_crossings.second) continue;
-                    assumptions[last_index] = map_node_to_point[i * m_num_points + m_assignment.getAssigned(i)];
+                    //assumptions[last_index] = map_node_to_point[i * m_num_points + m_assignment.getAssigned(i)];
+                    assumptions[last_index] = get_map_node_to_point(i, m_assignment.getAssigned(i));
                     last_index++;
                 }
                 std::cout << "first valid assignment is found" << std::endl;
@@ -535,7 +602,8 @@ void SATPlacement::iterative_solving(){
                 int last_index = 0;
                 for(int i = 0; i < m_num_nodes; i++){
                     if(i == edge_with_most_crossings.first || i == edge_with_most_crossings.second) continue;
-                    assumptions[last_index] = map_node_to_point[i * m_num_points + m_assignment.getAssigned(i)];
+                    //assumptions[last_index] = map_node_to_point[i * m_num_points + m_assignment.getAssigned(i)];
+                    assumptions[last_index] = get_map_node_to_point(i, m_assignment.getAssigned(i));
                     last_index++;
                 }
             }else{
