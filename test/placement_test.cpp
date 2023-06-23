@@ -76,7 +76,5 @@ TEST(PlacementTest, GData_Graph)
   EXPECT_TRUE(valid);
   EXPECT_TRUE(isDefined(num_crossings));
   // EXPECT_EQ(placer.getNumCrossings(), num_crossings);
-
-  placer.improve(1000);
 }
 

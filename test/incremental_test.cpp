@@ -111,7 +111,7 @@ TEST(IncrementalCollinearTest, FindCollinearPoints_Grid)
   Vector<Point> points_on_line {
     Point(2, 50, 50),
     Point(4, 10, 10)};
-  point_pair_t line = PAIR(Point(0,0,0), Point(1, 100,100));
+  line_2d_t line = PAIR(PAIR(0,0), PAIR(100,100));
 
   Set<Point> points_coll{};
   CollinearityTestStruct coll{points_coll};

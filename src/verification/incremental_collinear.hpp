@@ -1,7 +1,7 @@
 #ifndef __GD_INCREMENTAL_COLLINEAR_HPP__
 #define __GD_INCREMENTAL_COLLINEAR_HPP__
 
-#include <gd_types.hpp>
+#include "gd_types.hpp"
 #include <common/instance.hpp>
 
 namespace gd
@@ -33,24 +33,16 @@ namespace gd
       IncrementalCollinear(const Instance& instance,
         const VertexAssignment& assignment, CollinearFunction& collFunc);
 
-      void place(vertex_t vertex, point_id_t point);
-      void deplace(vertex_t vertex);
-
-      bool isValidCandidate(vertex_t vertex, point_id_t p);
       // add check whether point itself is colinear with already set point
-
-      bool isPointInvalid(point_id_t p) const
-      { return m_invalidPoints.contains(p) && m_invalidPoints.find(p)->second > 0; }
-
-      bool findCollinear(const point_pair_t& line, bool fix_edge = false);
+      void findCollinear(const line_2d_t& line, bool fix_edge = false);
+      bool isPointInvalid(point_id_t p) const { return m_invalidPoints.contains(p); }
 
     private:
       const VertexAssignment& m_assignment;
       const Instance& m_instance;
       CollinearFunction& m_collFunc;
 
-      Map<point_id_t, size_t> m_invalidPoints;
-      MultiMap<pointid_pair_t, point_id_t> m_invalidities; // from line to points
+      Set<point_id_t> m_invalidPoints;
   };
 
 }
