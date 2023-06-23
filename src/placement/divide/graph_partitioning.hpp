@@ -6,6 +6,7 @@
 #include <gd_types.hpp>
 #include <memory>
 #include <ostream>
+#include <utility>
 
 namespace gd
 {
@@ -71,8 +72,13 @@ namespace gd
   class HierarchicalGraph
   {
     public:
+      typedef Vector<vertex_t>::const_iterator vertex_iterator_t;
+      typedef std::pair<vertex_iterator_t, vertex_iterator_t> vertex_range_iterator_t;
       HierarchicalGraph(const Graph& graph, const Vector<int>& vertices,
         const Vector<partitioning::Partition>& partitions);
+
+      vertex_range_iterator_t get_range() const
+      { return std::make_pair(m_vertices.begin(), m_vertices.end()); }
 
       friend std::ostream& operator<<(std::ostream& os, const HierarchicalGraph& g)
       {

@@ -8,9 +8,14 @@
 
 namespace gd
 {
+  class VertexOrder
+  {
+    public:
+      virtual vertex_t getNext() = 0;
+  };
 
   // Order: Degree of a vertex that has not been placed yet.
-  class MaxEmbeddedVertexOrder
+  class MaxEmbeddedVertexOrder : public VertexOrder
   {
     public:
       MaxEmbeddedVertexOrder(const Instance& instance)
@@ -22,7 +27,7 @@ namespace gd
       }
 
       // returns VERTEX_UNDEF if no next vertex
-      vertex_t getNext()
+      vertex_t getNext() override
       {
         vertex_t v = VERTEX_UNDEF;
         while(!m_degreeQueue.empty())
@@ -51,14 +56,14 @@ namespace gd
       PriorityQueue<VertexDegreePair> m_degreeQueue;
   };
 
-  class TrivialCountingVertexOrder
+  class TrivialCountingVertexOrder : public VertexOrder
   {
     public:
       TrivialCountingVertexOrder(const Instance& instance)
         : m_size(instance.m_graph.getNbVertices()), m_next(0) {}
 
       // returns VERTEX_UNDEF if no next vertex
-      vertex_t getNext()
+      vertex_t getNext() override
       {
         if (m_next == m_size) return UINT_UNDEF;
         return m_next++;
@@ -67,6 +72,23 @@ namespace gd
     private:
       size_t m_size;
       size_t m_next;
+  };
+
+  class PartitioningVertexOrder : public VertexOrder
+  {
+    public:
+      typedef Vector<vertex_t>::const_iterator vertex_iterator_t;
+      typedef std::pair<vertex_iterator_t, vertex_iterator_t> vertex_range_pair_t;
+      PartitioningVertexOrder(vertex_range_pair_t range): m_range(range) {}
+
+      vertex_t getNext() override
+      {
+        if (m_range.first == m_range.second) return UINT_UNDEF;
+        return *m_range.first++;
+      }
+
+    private:
+      vertex_range_pair_t m_range;
   };
 
 }
