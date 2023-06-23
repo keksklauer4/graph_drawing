@@ -20,8 +20,6 @@ namespace gd
       size_t getNumPoints() const { return m_points.size(); }
       const point_t& getPoint(point_id_t id) const { return m_points.at(id); }
 
-      point_iterator_t begin() const { return m_points.begin(); }
-      point_iterator_t end() const { return m_points.end(); }
 
     private:
       Vector<point_t> m_points;

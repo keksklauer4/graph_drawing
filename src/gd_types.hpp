@@ -18,7 +18,6 @@ namespace gd
 {
   typedef int coordinate_t;
   typedef std::pair<coordinate_t,coordinate_t> coordinate_2d_t;
-  typedef std::pair<coordinate_2d_t,coordinate_2d_t> line_2d_t;
   typedef std::pair<size_t, size_t> size_pair_t;
   typedef size_pair_t vertex_pair_t;
   typedef size_t vertex_t;
@@ -71,8 +70,6 @@ namespace gd
 
     std::pair<coordinate_2d_t, point_id_t> getCoordToId() const
     { return std::make_pair(coordinate_2d_t{x, y}, id); }
-    friend bool operator<(const Point& p1, const Point& p2)
-    { return p1.id < p2.id; }
 
     size_t id;
     coordinate_t x;
