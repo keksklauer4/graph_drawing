@@ -47,8 +47,7 @@ int main(int argc, const char** argv)
     visualizer->setClustering(points);
     visualizer->drawClustering();*/
   }
-  PartitioningVertexOrder order{ hierarchy.get_range() };
-  GreedyPlacement placement{instance, order, visualizer.get()};
+  GreedyPlacement placement{instance, visualizer.get()};
   const auto& assignment = placement.findPlacement();
   placement.improve(improvement_iters);
 
