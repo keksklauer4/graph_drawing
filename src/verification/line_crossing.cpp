@@ -10,20 +10,20 @@ using namespace gd;
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 typedef CGAL::Arr_segment_traits_2<Kernel> Traits;
 typedef Traits::Curve_2 Segment;
-typedef Traits::Point_2 Point_2;
+typedef Traits::Point_2 Point;
 
 #define MAGIC_NUM 1e9
 
 struct CounterFakeIterator
 {
-  CounterFakeIterator(): m_point(Point_2(MAGIC_NUM, MAGIC_NUM)), m_counter(0) {}
-  Point_2& operator*() { return m_point; }
+  CounterFakeIterator(): m_point(Point(MAGIC_NUM, MAGIC_NUM)), m_counter(0) {}
+  Point& operator*() { return m_point; }
   void operator++() { m_counter++; }
 
   size_t getCounter() const { return m_counter + (m_point.x() != MAGIC_NUM ? 1 : 0); }
 
   private:
-    Point_2 m_point;
+    Point m_point;
     size_t m_counter;
 };
 
@@ -40,7 +40,7 @@ size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& as
     {
       const auto& p1 = points.getPoint(assignment.getAssigned(edge.first));
       const auto& p2 = points.getPoint(assignment.getAssigned(edge.second));
-      *segmentptr++ = Segment(Point_2(p1.x, p1.y), Point_2(p2.x, p2.y));
+      *segmentptr++ = Segment(Point(p1.x, p1.y), Point(p2.x, p2.y));
     }
   }
 

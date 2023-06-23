@@ -54,7 +54,7 @@ namespace
     }
   }
 
-  void parsePoints(Document& doc, Vector<point_t>& points)
+  void parsePoints(Document& doc, Vector<coordinate_t>& points)
   {
     const Value& pointsArr = doc["points"];
     points.resize(pointsArr.Size());
@@ -65,7 +65,7 @@ namespace
         && pointsArr[idx].HasMember("y") && pointsArr[idx].HasMember("id"), "Point invalid properties.");
       expectTrue(pointsArr[idx]["x"].IsInt()
         && pointsArr[idx]["y"].IsInt() && pointsArr[idx]["id"].IsInt(), "Point properties not int");
-      points[idx] = Point{ (size_t)pointsArr[idx]["id"].GetInt64(), pointsArr[idx]["x"].GetInt(), 
+      points[idx] = Coordinate{ (size_t)pointsArr[idx]["id"].GetInt64(), pointsArr[idx]["x"].GetInt(), 
         pointsArr[idx]["y"].GetInt() };
     }
   }
@@ -81,7 +81,7 @@ instance_t gd::parseInstanceFromFile(const std::string& filename)
   document.ParseStream(wrapper);
   assertDocumentStructure(document);
   Vector<vertex_pair_t> edges {};
-  Vector<point_t> points {};
+  Vector<coordinate_t> points {};
 
   parseEdges(document, edges);
   parsePoints(document, points);

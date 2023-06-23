@@ -9,20 +9,20 @@ namespace gd
   class PointSet
   {
     public:
-      using point_iterator_t = Vector<point_t>::const_iterator;
+      using point_iterator_t = Vector<coordinate_t>::const_iterator;
       using point_iterator_pair_t = std::pair<point_iterator_t, point_iterator_t>;
     public:
       PointSet(){}
-      PointSet(Vector<point_t>&& points): m_points(points) {}
+      PointSet(Vector<coordinate_t>&& points): m_points(points) {}
 
       point_iterator_pair_t getPointIterator() const
       { return std::make_pair(m_points.begin(), m_points.end()); }
       size_t getNumPoints() const { return m_points.size(); }
-      const point_t& getPoint(point_id_t id) const { return m_points.at(id); }
+      const coordinate_t& getPoint(point_id_t id) const { return m_points.at(id); }
 
 
     private:
-      Vector<point_t> m_points;
+      Vector<coordinate_t> m_points;
   };
 
 }
