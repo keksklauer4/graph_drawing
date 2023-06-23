@@ -6,11 +6,17 @@ option(GD_BUILD_TESTS "Build graph_drawing test executable" ON)
 enable_language(C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
+
+set(GD_SAT_SOLVER_INCLUDES external/EvalMaxSAT/lib/EvalMaxSAT/src external/EvalMaxSAT/lib/MaLib/src external/EvalMaxSAT/lib/glucose/src)
+
 set(CMAKE_BUILD_TYPE Release)
 set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
                     external/rapidjson/include/ external/HIP/interface/
-                    ${EIGEN3_INCLUDE_DIR}/ external/hclust/)
-set(GD_LINK_LIBS CGAL::CGAL kahip Eigen3::Eigen hclust) # lemon)
+                    ${EIGEN3_INCLUDE_DIR}/ external/hclust/
+                    ${GD_SAT_SOLVER_INCLUDES})
+
+set(GD_LINK_LIBS CGAL::CGAL kahip Eigen3::Eigen hclust EvalMaxSAT) # lemon)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(HCLUST_BUILD_DEMO CACHE BOOL OFF)
@@ -30,13 +36,15 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 # build gtest and other libs
 add_subdirectory(external)
 
+file(COPY external/rapidjson/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/external)
 
-if ( CMAKE_COMPILER_IS_GNUCC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -frounding-math -Wextra -Wpedantic -Werror -fdiagnostics-color=always")
-endif()
-if ( MSVC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4 /WX")
-endif()
+
+#if ( CMAKE_COMPILER_IS_GNUCC )
+#    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -frounding-math -Wextra -Wpedantic -Werror -fdiagnostics-color=always")
+#endif()
+#if ( MSVC )
+#    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4 /WX")
+#endif()
 
 add_library(graph_drawing)
 
