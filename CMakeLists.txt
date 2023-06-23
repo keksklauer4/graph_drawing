@@ -9,7 +9,6 @@ set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(GD_INCLUDE_LIBS build/external/lemon/ external/lemon/ external/ src/ external/rapidjson/include/)
 set(GD_LINK_LIBS lemon)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(LEMON_ENABLE_GLPK CACHE BOOL OFF)
 set(LEMON_ENABLE_ILOG CACHE BOOL OFF)

@@ -62,10 +62,10 @@ namespace
     {
       expectTrue(pointsArr[idx].IsObject(), "Invalid point");
       expectTrue(pointsArr[idx].HasMember("x")
-        && pointsArr[idx].HasMember("y") && pointsArr[idx].HasMember("id"), "Point invalid properties.");
+        && pointsArr[idx].HasMember("y"), "Point invalid properties.");
       expectTrue(pointsArr[idx]["x"].IsInt()
-        && pointsArr[idx]["y"].IsInt() && pointsArr[idx]["id"].IsInt(), "Point properties not int");
-      points[idx] = Coordinate{ (size_t)pointsArr[idx]["id"].GetInt64(), pointsArr[idx]["x"].GetInt(), 
+        && pointsArr[idx]["y"].IsInt(), "Point properties not int");
+      points[idx] = Coordinate{ pointsArr[idx]["x"].GetInt(), 
         pointsArr[idx]["y"].GetInt() };
     }
   }

@@ -18,16 +18,12 @@ namespace gd
   typedef std::pair<size_t, size_t> size_pair_t;
   typedef size_pair_t vertex_pair_t;
   typedef size_t vertex_t;
-  typedef size_t point_id_t;
 
   const static size_t UINT_UNDEF = (size_t)-1;
   const static vertex_t VERTEX_UNDEF = (size_t)-1;
 
   template<typename T, typename Allocator = std::allocator<T>>
   using Vector = std::vector<T, Allocator>;
-
-  template<typename T, typename Compare = std::less<T>, typename Allocator = std::allocator<T>>
-  using Set = std::set<T, Compare, Allocator>;
 
   template<class T, typename HashFunc = std::hash<T>, typename Allocator = std::allocator<T>>
   using UnorderedSet = std::unordered_set<T, HashFunc, std::equal_to<T>, Allocator>;
@@ -62,10 +58,9 @@ namespace gd
 
   typedef struct Coordinate
   {
-    Coordinate(): Coordinate(UINT_UNDEF, 0,0) {}
-    Coordinate(size_t id_val, int x_val, int y_val): id(id_val), x(x_val), y(y_val) {}
+    Coordinate(): Coordinate(0,0) {}
+    Coordinate(int x_val, int y_val): x(x_val), y(y_val) {}
 
-    size_t id;
     int x;
     int y;
   } coordinate_t;
