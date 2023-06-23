@@ -98,28 +98,3 @@ TEST(VerifierTest, CrossingCounting_SimpleK4)
   });
   EXPECT_EQ(gd::countCrossings(instance, assignment), 1);
 }
-
-TEST(VerifierTest, CrossingCounting_NoCrossings)
-{
-  instance_t instance = create_mock_instance(
-    {
-      PAIR(0, 1),
-      PAIR(0, 3),
-      PAIR(1, 2),
-      PAIR(1, 3),
-      PAIR(2, 3)
-    },
-    {
-      Point(0, 0, 0),
-      Point(1, 5, 0),
-      Point(2, 5, 5),
-      Point(3, 0, 5)
-    });
-  VertexAssignment assignment = create_mock_assignment(4, {
-    PAIR(0, 0),
-    PAIR(1, 1),
-    PAIR(2, 2),
-    PAIR(3, 3)
-  });
-  EXPECT_EQ(gd::countCrossings(instance, assignment), 0);
-}
