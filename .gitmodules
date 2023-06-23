@@ -1,6 +1,3 @@
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
-[submodule "external/cli11"]
-	path = external/cli11
-	url = https://github.com/CLIUtils/CLI11.git
