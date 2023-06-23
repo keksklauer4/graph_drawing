@@ -11,8 +11,6 @@
 
 #include <numeric>
 
-#include <io/printing.hpp>
-
 #define SCALE 2
 
 using namespace gd;
@@ -62,8 +60,6 @@ struct FakeIterator
         auto findIt = m_coordinateToId.find(coordinate_2d_t { p.x() / SCALE, p.y() / SCALE });
         if (findIt != m_coordinateToId.end() && m_assignment.isPointUsed(findIt->second))
         {
-          std::cout << "Found collinear on line " << *m_line << " id "
-                    << findIt->second << " at " << findIt->first << std::endl;
           m_failed = true;
         }
       }
