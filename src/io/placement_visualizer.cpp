@@ -2,13 +2,11 @@
 #include "common/misc.hpp"
 #include "gd_types.hpp"
 
-#include <cassert>
 #include <cstddef>
 #include <fstream>
 #include <filesystem>
 
 #include <common/assignment.hpp>
-#include <numeric>
 #include <stdexcept>
 #include <utility>
 
@@ -98,15 +96,13 @@ void PlacementVisualizer::initialize()
     higherTo(y_range.second, p.y);
   }
 
-  calculateGCDScaling();
-
   m_scaling = getRadius() * 4;
-  m_width = ((x_range.second - x_range.first) / m_gcdScaling + 2) * m_scaling;
+  m_width = (x_range.second - x_range.first + 2) * m_scaling;
   higherTo(m_width, 1000ul);
-  m_height = ((y_range.second - y_range.first) / m_gcdScaling + 2) * m_scaling;
+  m_height = (y_range.second - y_range.first + 2) * m_scaling;
   higherTo(m_width, 1000ul);
 
-  m_pointTranslation = std::make_pair(-x_range.first / m_gcdScaling + 1, -y_range.first  / m_gcdScaling + 1);
+  m_pointTranslation = std::make_pair(-x_range.first + 1, -y_range.first + 1);
 
 
   auto width = getWidth();
@@ -130,25 +126,6 @@ void PlacementVisualizer::initialize()
   m_svg.str(std::string());
 
   m_initialized = true;
-}
-
-void PlacementVisualizer::calculateGCDScaling()
-{
-  const auto& pset = m_instance.m_points;
-  m_gcdScaling = UINT_UNDEF;
-  for (const auto& p : pset)
-  {
-    if (!isDefined(m_gcdScaling))
-    {
-      if (p.x != 0) m_gcdScaling = p.x;
-      else if (p.y != 0) m_gcdScaling = p.y;
-      else continue;
-    }
-    if (p.x != 0) lowerTo(m_gcdScaling, std::gcd(m_gcdScaling, p.x));
-    if (p.y != 0) lowerTo(m_gcdScaling, std::gcd(m_gcdScaling, p.y));
-  }
-  std::cout << "GCD of coordinates " << m_gcdScaling << std::endl;
-  if (m_gcdScaling == 0) m_gcdScaling = 1;
 }
 
 
@@ -210,8 +187,8 @@ void PlacementVisualizer::drawEdge(Point p1, Point p2, const std::string& color,
 
 Point PlacementVisualizer::translatePoint(const Point& p) const
 {
-  return Point{ p.id, (p.x  / m_gcdScaling + m_pointTranslation.first) * m_scaling,
-    (p.y  / m_gcdScaling + m_pointTranslation.second) * m_scaling};
+  return Point{ p.id, (p.x + m_pointTranslation.first) * m_scaling,
+    (p.y + m_pointTranslation.second) * m_scaling};
 }
 
 // TODOs:
