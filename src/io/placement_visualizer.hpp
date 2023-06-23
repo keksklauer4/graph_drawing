@@ -1,7 +1,6 @@
 #ifndef __GD_PLACEMENT_VISUALIZER_HPP__
 #define __GD_PLACEMENT_VISUALIZER_HPP__
 
-#include <cassert>
 #include <gd_types.hpp>
 #include <common/instance.hpp>
 #include <sstream>
@@ -10,22 +9,12 @@ namespace gd
 {
   class PlacementVisualizer
   {
-    enum DrawingMode : int
-    {
-      NORMAL_DRAWING = 0,
-      COLOR_VERTICES_ACCORDING_TO_HIERARCHY = 1,
-      DRAW_ONLY_CLUSTERING = 2
-    };
     public:
       PlacementVisualizer(const instance_t& instance, std::string filename)
-        : m_instance(instance), m_hierarchy(nullptr), m_pointClustering(nullptr),
-          m_filename(filename), m_iteration(0), m_mode(NORMAL_DRAWING) { }
+        : m_instance(instance), m_filename(filename), m_iteration(0) { }
 
       void setAssignment(const VertexAssignment& assignment)
       { m_assignment = &assignment; }
-
-      void setClustering(const PointClustering& pointClustering) { m_pointClustering = &pointClustering; }
-      void setHierarchy(const HierarchicalGraph& hierarchy) { m_hierarchy = &hierarchy; }
 
     private:
       double getWidth() const { return m_width; }
@@ -47,7 +36,6 @@ namespace gd
       const std::string& getColor(size_t node);
       Point translatePoint(const Point& p) const;
       void calculateGCDScaling();
-      void drawClusteredNodes();
 
     public:
       void draw(const char* title = nullptr);
@@ -60,14 +48,10 @@ namespace gd
         finishDrawing();
       }
 
-      void drawClustering();
-
     private:
       bool m_initialized = false;
       const instance_t& m_instance;
       const VertexAssignment* m_assignment;
-      const HierarchicalGraph* m_hierarchy;
-      const PointClustering* m_pointClustering;
       std::string m_filename;
       size_t m_iteration;
       std::stringstream m_svg;
@@ -80,8 +64,6 @@ namespace gd
       size_t m_height;
       coordinate_t m_scaling;
       coordinate_t m_gcdScaling;
-
-      DrawingMode m_mode;
   };
 }
 

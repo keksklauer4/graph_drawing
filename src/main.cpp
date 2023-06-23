@@ -11,7 +11,6 @@
 #include <io/placement_visualizer.hpp>
 
 #include <placement/divide/graph_partitioning.hpp>
-#include <placement/divide/point_clustering.hpp>
 
 using namespace gd;
 
@@ -32,21 +31,11 @@ int main(int argc, const char** argv)
 
   CLI11_PARSE(app, argc, argv);
   instance_t instance = parseInstanceFromFile(file);
-  HierarchicalGraphBuilder hierarchyBuilder{instance};
-  HierarchicalGraph hierarchy = hierarchyBuilder.partition();
-  std::cout << hierarchy << std::endl;
-  PointClustering points{instance};
-  points.cluster();
-  std::cout << points << std::endl;
+  HierarchicalGraphBuilder hierarchy{instance};
+  hierarchy.partition();
 
   std::unique_ptr<PlacementVisualizer> visualizer;
-  if (!visualization_file_prefix.empty())
-  {
-    visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);
-    /*visualizer->setHierarchy(hierarchy);
-    visualizer->setClustering(points);
-    visualizer->drawClustering();*/
-  }
+  if (!visualization_file_prefix.empty()) visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);
   GreedyPlacement placement{instance, visualizer.get()};
   const auto& assignment = placement.findPlacement();
   placement.improve(improvement_iters);

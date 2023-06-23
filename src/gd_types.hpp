@@ -155,8 +155,6 @@ namespace gd
   class GreedyPlacement;
   class PlacementVisualizer;
   class KdTree;
-  class PointClustering;
-  class HierarchicalGraph;
 }
 
 

@@ -1,7 +1,6 @@
 #ifndef __GD_MISC_HPP__
 #define __GD_MISC_HPP__
 
-#include <cmath>
 #include <gd_types.hpp>
 
 namespace gd
@@ -21,11 +20,6 @@ namespace gd
     if (val > otherval) val = otherval;
   }
 
-  inline double distance(const Point& p1, const Point& p2)
-  {
-    return std::sqrt(std::pow(static_cast<double>(p1.x - p2.x), 2)
-                    + std::pow(static_cast<double>(p1.y - p2.y), 2));
-  }
 }
 
 #endif
