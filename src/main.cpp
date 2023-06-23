@@ -10,8 +10,6 @@
 
 #include <io/placement_visualizer.hpp>
 
-#include <placement/divide/graph_partitioning.hpp>
-
 using namespace gd;
 
 int main(int argc, const char** argv)
@@ -31,8 +29,6 @@ int main(int argc, const char** argv)
 
   CLI11_PARSE(app, argc, argv);
   instance_t instance = parseInstanceFromFile(file);
-  HierarchicalGraphBuilder hierarchy{instance};
-  hierarchy.partition();
 
   std::unique_ptr<PlacementVisualizer> visualizer;
   if (!visualization_file_prefix.empty()) visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);

@@ -4,6 +4,3 @@
 [submodule "external/cli11"]
 	path = external/cli11
 	url = https://github.com/CLIUtils/CLI11.git
-[submodule "external/HIP"]
-	path = external/HIP
-	url = https://github.com/KaHIP/KaHIP.git

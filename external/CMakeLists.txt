@@ -5,7 +5,6 @@ if ( ${GD_BUILD_TESTS} )
 endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lemon)
-add_subdirectory(HIP)
 
 find_package(CGAL)
 
