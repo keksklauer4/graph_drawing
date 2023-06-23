@@ -1,7 +1,6 @@
 #ifndef __GD_INCREMENTAL_COLLINEAR_HPP__
 #define __GD_INCREMENTAL_COLLINEAR_HPP__
 
-#include "gd_types.hpp"
 #include <common/instance.hpp>
 
 namespace gd
@@ -34,15 +33,12 @@ namespace gd
         const VertexAssignment& assignment, CollinearFunction& collFunc);
 
       // add check whether point itself is colinear with already set point
-      void findCollinear(const line_2d_t& line, bool fix_edge = false);
-      bool isPointInvalid(point_id_t p) const { return m_invalidPoints.contains(p); }
+      void findCollinear(const line_2d_t& line) const;
 
     private:
       const VertexAssignment& m_assignment;
       const Instance& m_instance;
       CollinearFunction& m_collFunc;
-
-      Set<point_id_t> m_invalidPoints;
   };
 
 }

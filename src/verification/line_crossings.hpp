@@ -9,7 +9,7 @@ namespace gd
 
   // check that every vertex is mapped before calling this!
   size_t countCrossings(const instance_t& instance, const VertexAssignment& assignment);
-  // TODO: count multiplicity of crossings!
+
 }
 
 #endif
