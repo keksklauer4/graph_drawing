@@ -47,6 +47,11 @@ int main(int argc, const char** argv)
 
   std::cout << "Done parsing file." << std::endl;
 
+  PartitioningVertexOrder order{ hierarchy.get_range() };
+  GreedyPlacement placement{instance, order};
+  const auto& assignment = placement.findPlacement();
+  placement.improve(improvement_iters);
+
   //std::vector<std::vector<vertex_t>> partitions = {{0, 1, 3, 4}, {2, 5}, {6, 7}, {8}};
   //std::vector<std::vector<point_id_t>> clusters = {{0, 1, 2, 3, 7, 8, 9, 10, 14, 15, 16, 17}, {21, 22, 23, 24, 28, 29, 30, 31}, {4, 5, 6, 11, 12, 13, 18,19, 20}, {25, 26, 27, 32, 33, 34}};
   //std::vector<int> n2p{0, 0, 1, 0, 0, 1, 2, 2, 3};
@@ -122,17 +127,11 @@ int main(int argc, const char** argv)
     /*visualizer->setHierarchy(hierarchy);
     visualizer->setClustering(points);
     visualizer->drawClustering();*/
-  }
-  PartitioningVertexOrder order{ hierarchy.get_range() };
-  GreedyPlacement placement{instance, order, visualizer.get()};
-  const auto& assignment = placement.findPlacement();
-  placement.improve(improvement_iters);
 
   Verifier verifier{instance, assignment};
   size_t num_crossings = 0;
   bool valid = verifier.verify(num_crossings);
   std::cout << "Verification result: " << (valid? "Valid" : "Invalid") << std::endl;
   if (valid) std::cout << "Number of crossings " << num_crossings << std::endl;
-  */
   return 0;
 }
