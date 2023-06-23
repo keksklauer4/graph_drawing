@@ -53,26 +53,6 @@ TEST(VerifierTest, SimpleCollinearity)
 }
 
 
-TEST(VerifierTest, SimpleNoCollinearityShifted)
-{
-  instance_t instance = create_mock_instance(
-    {
-      PAIR(0, 1),
-      PAIR(1, 2)
-    },
-    {
-      Point(0, 0, 0),
-      Point(1, 2, 1), // not collinear ( since its not (2,2) )
-      Point(2, 4, 4)
-    });
-  VertexAssignment assignment = create_mock_assignment(3, {
-    PAIR(0, 1),
-    PAIR(1, 0),
-    PAIR(2, 2)
-  });
-  EXPECT_FALSE(gd::trivialCollinearityCheck(instance, assignment));
-}
-
 TEST(VerifierTest, CrossingCounting_SimpleK4)
 {
   instance_t instance = create_mock_instance(

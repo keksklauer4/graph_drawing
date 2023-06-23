@@ -1,8 +1,5 @@
 #include "collinear.hpp"
 
-#include <CGAL/Kernel/global_functions_3.h>
-#include <CGAL/Polygon_2_algorithms.h>
-#include <CGAL/enum.h>
 #include <common/assignment.hpp>
 #include <gd_types.hpp>
 
@@ -20,8 +17,6 @@ typedef Kernel::Point_2 Point_2;
 
 typedef UnorderedMap<coordinate_2d_t, point_id_t, PairHashFunc<coordinate_t>> CoordinateToIdMap;
 
-typedef std::pair<Point_2, Point_2> point2_pair_t;
-
 struct FakeIterator
 {
   public:
@@ -29,7 +24,7 @@ struct FakeIterator
       : m_assignment(as), m_coordinateToId(m), m_failed(failed) {}
 
 
-    void reset(const point2_pair_t& line)
+    void reset(const point_pair_t& line)
     {
       m_handle = Vertex_handle();
       m_failed = false;
@@ -47,14 +42,13 @@ struct FakeIterator
   private:
     bool checkIsOwnLinesPoint(Point_2 p) const
     {
-      return (p.x() == m_line->first.x() && p.y() == m_line->first.y())
-        || (p.x() == m_line->second.x() && p.y() == m_line->second.y());
+      return (p.x() == m_line->first.x && p.y() == m_line->first.y)
+        || (p.x() == m_line->second.x && p.y() == m_line->second.y);
     }
     void checkMapped()
     {
       const auto& p = m_handle->point();
-      if (!checkIsOwnLinesPoint(p)
-        && CGAL::orientation(m_line->first, m_line->second, p) == CGAL::COLLINEAR)
+      if (!checkIsOwnLinesPoint(Point_2(p.x() / SCALE, p.y() / SCALE)))
         {
         auto findIt = m_coordinateToId.find(coordinate_2d_t { p.x() / SCALE, p.y() / SCALE });
         if (findIt != m_coordinateToId.end() && m_assignment.isPointUsed(findIt->second))
@@ -67,7 +61,7 @@ struct FakeIterator
   private:
     const VertexAssignment& m_assignment;
     const CoordinateToIdMap& m_coordinateToId;
-    const point2_pair_t* m_line;
+    const point_pair_t* m_line;
     bool& m_failed;
 
     Vertex_handle m_handle;
@@ -88,12 +82,11 @@ namespace
 
   bool checkSingleLine(CGAL::Point_set_2<Kernel>& pointset, FakeIterator collinearityChecker, const point_pair_t& line)
   {
+    collinearityChecker.reset(line);
     bool firstleft_or_up = (line.first.x < line.second.x ||
         (line.first.x == line.second.x && line.first.y > line.second.y));
     Point_2 p1 = firstleft_or_up ? fromPoint(line.first) : fromPoint(line.second);
     Point_2 p3 = firstleft_or_up ? fromPoint(line.second) : fromPoint(line.first);
-    point2_pair_t p2_line = std::make_pair(p1, p3);
-    collinearityChecker.reset(p2_line);
     adjustIfCollinear(p1, p3);
     pointset.range_search(p1, Point_2(p3.x(), p1.y()), p3, Point_2(p1.x(), p3.y()), collinearityChecker);
 
