@@ -8,6 +8,7 @@
 
 #include <gd_types.hpp>
 #include <common/assignment.hpp>
+#include <common/instance.hpp>
 
 #include <numeric>
 
