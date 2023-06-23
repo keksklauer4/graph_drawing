@@ -17,7 +17,6 @@ void VertexAssignment::assign(vertex_t vertex, point_id_t to)
   m_assignment[vertex] = to;
   m_unassigned.erase(vertex);
   m_usedPoints.insert(to);
-  m_assignedVertices.insert(vertex);
 }
 
 bool VertexAssignment::isAssigned(vertex_t vertex) const
