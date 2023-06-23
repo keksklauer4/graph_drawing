@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <common/verifier.hpp>
+#include "verifier.hpp"
 
 int main()
 {

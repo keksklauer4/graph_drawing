@@ -2,7 +2,7 @@
 #define __GD_GRAPH_HPP__
 
 #include <gd_types.hpp>
-#include <rapidjson/rapidjson.h>
+#include <rapidjson.h>
 
 namespace gd
 {
