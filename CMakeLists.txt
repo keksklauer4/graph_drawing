@@ -39,7 +39,7 @@ target_link_libraries(graph_drawing ${GD_LINK_LIBS})
 
 
 add_executable(gd src/main.cpp)
-target_include_directories(gd PRIVATE src ${GD_INCLUDE_LIBS} external/cli11/include/)
+target_include_directories(gd PRIVATE src ${GD_INCLUDE_LIBS})
 target_link_libraries(gd graph_drawing)
 
 
