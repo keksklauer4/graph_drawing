@@ -7,6 +7,3 @@
 [submodule "external/HIP"]
 	path = external/HIP
 	url = https://github.com/KaHIP/KaHIP.git
-[submodule "external/Eigen"]
-	path = external/Eigen
-	url = https://gitlab.com/libeigen/eigen.git

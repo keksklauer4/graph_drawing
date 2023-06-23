@@ -7,8 +7,8 @@ enable_language(C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Release)
-set(GD_INCLUDE_LIBS build/external/lemon/ external/lemon/ external/ src/ external/rapidjson/include/ external/HIP/interface/ ${EIGEN3_INCLUDE_DIR}/)
-set(GD_LINK_LIBS lemon CGAL::CGAL kahip Eigen3::Eigen)
+set(GD_INCLUDE_LIBS build/external/lemon/ external/lemon/ external/ src/ external/rapidjson/include/ external/HIP/interface/)
+set(GD_LINK_LIBS lemon CGAL::CGAL kahip)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(LEMON_ENABLE_GLPK CACHE BOOL OFF)
@@ -18,9 +18,6 @@ set(LEMON_ENABLE_COIN CACHE BOOL OFF)
 set(LEMON_ENABLE_SOPLEX CACHE BOOL OFF)
 
 add_compile_definitions(CGAL_DISABLE_ROUNDING_MATH_CHECK)
-add_compile_definitions(CGAL_EIGEN3_ENABLED)
-add_compile_definitions(EIGEN_MPL2_ONLY)
-
 set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
 
 # build gtest and other libs

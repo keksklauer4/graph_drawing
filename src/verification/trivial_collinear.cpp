@@ -21,6 +21,8 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel  Kernel;
 typedef CGAL::Point_set_2<Kernel>::Vertex_handle Vertex_handle;
 typedef Kernel::Point_2 Point_2;
 
+typedef UnorderedMap<coordinate_2d_t, point_id_t, PairHashFunc<coordinate_t>> CoordinateToIdMap;
+
 typedef std::pair<Point_2, Point_2> point2_pair_t;
 
 struct FakeIterator

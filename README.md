@@ -10,10 +10,9 @@ i. e. git clone --recursive <url>
 Also install python3, pip3 (i. e. the package python3-pip) and install
 the library networkx using pip (i. e. pip3 install networkx)
 
-2. Obtain Lemon, CGAL and Eigen by running (obtains the zip and unzips it)
+2. Obtain Lemon and CGAL by running (obtains the zip and unzips it)
 bash prepare.sh
 sudo apt-get install libcgal-dev
-sudo apt install libeigen3-dev
 
 3. Build
 mkdir build
@@ -36,8 +35,3 @@ ninja
 #### [LEMON](https://lemon.cs.elte.hu/trac/lemon) (License: [Boost Software License 1.0](https://choosealicense.com/licenses/bsl-1.0/))
 #### [rapidjson](https://github.com/Tencent/rapidjson) (License: [MIT](https://choosealicense.com/licenses/mit/))
 #### [CLI11](https://github.com/CLIUtils/CLI11) (License: [BSD 3-Clause "New" or "Revised"](https://choosealicense.com/licenses/bsd-3-clause/))
-#### [CGAL](https://www.cgal.org/) (License: [GPL/LGPL3.0](https://www.cgal.org/license.html))
-#### [Eigen](https://eigen.tuxfamily.org/) (License: [MPL2](https://www.mozilla.org/en-US/MPL/2.0/), disabled LGPL3+ code)
-#### [KaHIP](https://github.com/KaHIP/KaHIP) (License: [MIT](https://choosealicense.com/licenses/mit/))
-
-//Todo
