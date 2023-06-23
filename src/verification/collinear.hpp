@@ -2,6 +2,8 @@
 #define __GD_COLLINEAR_HPP__
 
 #include <gd_types.hpp>
+#include <common/assignment.hpp>
+#include <common/instance.hpp>
 
 namespace gd
 {

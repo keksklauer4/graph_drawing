@@ -3,14 +3,12 @@
 #include <CGAL/Kernel/global_functions_3.h>
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/enum.h>
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Point_set_2.h>
-
-#include <gd_types.hpp>
 #include <common/assignment.hpp>
-#include <common/instance.hpp>
+#include <gd_types.hpp>
 
 #include <numeric>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Point_set_2.h>
 
 #define SCALE 2
 

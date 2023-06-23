@@ -1,7 +1,8 @@
 #ifndef __GD_VERIFIER_HPP__
 #define __GD_VERIFIER_HPP__
 
-#include <gd_types.hpp>
+#include <common/instance.hpp>
+#include <common/assignment.hpp>
 
 namespace gd
 {
@@ -9,7 +10,7 @@ namespace gd
   class Verifier
   {
     public:
-      Verifier(const Instance& instance, const VertexAssignment& assignment)
+      Verifier(const instance_t& instance, const VertexAssignment& assignment)
         : m_instance(instance), m_assignment(assignment) {}
 
       bool verify(size_t& num_crossings) const;
@@ -18,7 +19,7 @@ namespace gd
       bool distinct() const;
 
     private:
-      const Instance& m_instance;
+      const instance_t& m_instance;
       const VertexAssignment& m_assignment;
   };
 

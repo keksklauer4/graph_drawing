@@ -1,10 +1,7 @@
 #include "verifier.hpp"
-
-
-#include <common/instance.hpp>
-#include <common/assignment.hpp>
-#include <verification/collinear.hpp>
-#include <verification/line_crossings.hpp>
+#include "gd_types.hpp"
+#include "verification/collinear.hpp"
+#include "verification/line_crossings.hpp"
 #include <cstddef>
 
 using namespace gd;

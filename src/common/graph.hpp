@@ -1,7 +1,9 @@
 #ifndef __GD_GRAPH_HPP__
 #define __GD_GRAPH_HPP__
 
+#include <cstddef>
 #include <gd_types.hpp>
+#include <rapidjson/rapidjson.h>
 
 namespace gd
 {
