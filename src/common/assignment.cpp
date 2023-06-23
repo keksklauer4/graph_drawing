@@ -20,14 +20,6 @@ void VertexAssignment::assign(vertex_t vertex, point_id_t to)
   m_assignedVertices.insert(vertex);
 }
 
-void VertexAssignment::unassign(vertex_t vertex)
-{
-  m_usedPoints.erase(m_assignment[vertex]);
-  m_unassigned.insert(vertex);
-  m_assignedVertices.erase(vertex);
-  m_assignment[vertex] = UINT_UNDEF;
-}
-
 bool VertexAssignment::isAssigned(vertex_t vertex) const
 {
   return isDefined(m_assignment.at(vertex));

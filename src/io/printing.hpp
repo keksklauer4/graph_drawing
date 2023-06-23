@@ -1,7 +1,6 @@
 #ifndef __GD_PRINTING_HPP__
 #define __GD_PRINTING_HPP__
 
-#include "common/instance.hpp"
 #include <iostream>
 #include <gd_types.hpp>
 #include <ostream>
@@ -36,14 +35,6 @@ namespace gd
     os << "(" << p.first << ", " << p.second << ")";
     return os;
   }
-
-  inline std::ostream& operator<<(std::ostream& os, const Point& p)
-  {
-    os << "point " << p.id << " at " << p.getCoordPair();
-    return os;
-  }
-
-  void printAssignment(std::ostream& os, const Instance& instance, const VertexAssignment& assignment);
 }
 
 

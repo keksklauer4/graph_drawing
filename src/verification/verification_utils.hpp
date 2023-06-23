@@ -55,13 +55,12 @@ namespace gd
       : within_intervall(line.first.second, p.y, line.second.second));
   }
 
-  // line p1-q1 , line p2-q2
-  inline bool intersect(const Point& p1, const Point& q1, const Point& p2, const Point& q2)
+  // line p1-p2 , line q1-q2
+  inline bool intersect(const Point& p1, const Point& p2, const Point& q1, const Point& q2)
   {
-    return (orientation(p1, q1, p2) != orientation(p1, q1, q2))
-      && (orientation(p2, q2, p1) != orientation(p2, q2, q1));
+    return (orientation(p1, p2, p2) != orientation(p1, p2, q2))
+      && (orientation(q1, q2, p1) != orientation(q1, q2, p2));
   }
-
 
 }
 

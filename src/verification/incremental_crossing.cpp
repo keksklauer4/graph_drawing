@@ -2,12 +2,9 @@
 #include "gd_types.hpp"
 #include "verification/verification_utils.hpp"
 
-#include <cassert>
 #include<common/instance.hpp>
 #include<common/assignment.hpp>
 #include <numeric>
-
-#include<iostream>
 
 using namespace gd;
 
@@ -19,7 +16,7 @@ IncrementalCrossing::IncrementalCrossing(const Instance& instance,
   std::fill(m_numCrossings.begin(), m_numCrossings.end(), 0);
 }
 
-size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bool fix, int delta)
+size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bool fix, size_t delta)
 {
   const auto& graph = m_instance.m_graph;
   const auto& pset = m_instance.m_points;
@@ -33,31 +30,36 @@ size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bo
   }
 
   size_t num_crossings = 0;
-  for (auto pair : m_instance.m_graph)
+  for (vertex_t v = 0; v < graph.getNbVertices(); ++v)
   {
-    if (pair.first > pair.second || pair.first == vertex
-      || pair.second == vertex || !m_assignment.isAssigned(pair.first)
-      || !m_assignment.isAssigned(pair.second)) continue;
-    const auto& vPoint = pset.getPoint(m_assignment.getAssigned(pair.first));
-    const auto& wPoint = pset.getPoint(m_assignment.getAssigned(pair.second));
-    for (vertex_t neighbor : m_mappedNeighbors)
+    if (v == vertex || !m_assignment.isAssigned(v)) continue;
+    const Point& vPoint = pset.getPoint(m_assignment.getAssigned(v));
+    auto neighbors = graph.getNeighborIterator(v);
+    for (auto w = neighbors.first; w != neighbors.second; ++w)
     {
-      if (neighbor == pair.first || neighbor == pair.second
-        || !gd::intersect(vPoint, wPoint, targetPoint, pset.getPoint(m_assignment.getAssigned(neighbor))))
-      {
-        continue;
-      }
-      num_crossings++;
-      if (fix)
-      {
-        m_numCrossings[pair.first] += delta;
-        m_numCrossings[pair.second] += delta;
-        m_numCrossings[vertex] += delta;
-        m_numCrossings[neighbor] += delta;
+      if (v < (*w) && (*w) != vertex && m_assignment.isAssigned(*w))
+      { // both v,w (v < w) are assigned and there is an edge between them (check whether that crosses with any of newVertex)
+        // now iterate over newVertex's neighbors
+        const Point& wPoint = pset.getPoint(m_assignment.getAssigned(*w));
+
+        for (vertex_t neighbor : m_mappedNeighbors)
+        {
+          const Point& neighborPoint = pset.getPoint(m_assignment.getAssigned(neighbor));
+          if (gd::intersect(vPoint, wPoint, targetPoint, neighborPoint))
+          {
+            num_crossings++;
+            if (fix)
+            {
+              m_numCrossings[v]         += delta;
+              m_numCrossings[*w]        += delta;
+              m_numCrossings[vertex]    += delta;
+              m_numCrossings[neighbor]  += delta;
+            }
+          }
+        }
       }
     }
   }
-
   return num_crossings;
 }
 
@@ -70,10 +72,10 @@ void IncrementalCrossing::place(vertex_t vertex, point_id_t point)
 {
   checkPlacement(vertex, point, true, +1);
 }
-void IncrementalCrossing::deplace(vertex_t vertex, point_id_t point)
+
+void IncrementalCrossing::deplace(vertex_t vertex)
 {
-  checkPlacement(vertex, point, true, -1);
-  assert(getNumCrossings(vertex) == 0 && "Vertex has been deplaced, so there should be no crossings!");
+  checkPlacement(vertex, m_assignment.getAssigned(vertex), true, -1);
 }
 
 
