@@ -23,7 +23,7 @@ struct FakeIterator
 
 
     void reset() { m_handle = Vertex_handle(); m_failed = false; }
-    void operator++(int) { if (!m_failed) checkMapped(); }
+    void operator++() { if (!m_failed) checkMapped(); }
     Vertex_handle& operator*() { return m_handle; }
 
     bool isCollinear()

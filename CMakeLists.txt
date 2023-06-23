@@ -44,7 +44,7 @@ target_link_libraries(gd graph_drawing)
 if ( ${GD_BUILD_TESTS} )
     add_executable(gd_test)
     add_subdirectory(test)
-    target_include_directories(gd_test PRIVATE src ${GD_INCLUDE_LIBS} test)
+    target_include_directories(gd_test PRIVATE src ${GD_INCLUDE_LIBS})
     target_link_libraries(gd_test graph_drawing gtest_main)
 
     file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
