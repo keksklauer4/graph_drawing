@@ -7,10 +7,10 @@ enable_language(C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Release)
-set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
+set(GD_INCLUDE_LIBS build/external/lemon/ external/lemon/ external/ src/
                     external/rapidjson/include/ external/HIP/interface/
                     ${EIGEN3_INCLUDE_DIR}/ external/hclust/)
-set(GD_LINK_LIBS CGAL::CGAL kahip Eigen3::Eigen hclust) # lemon)
+set(GD_LINK_LIBS lemon CGAL::CGAL kahip Eigen3::Eigen hclust)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(HCLUST_BUILD_DEMO CACHE BOOL OFF)
