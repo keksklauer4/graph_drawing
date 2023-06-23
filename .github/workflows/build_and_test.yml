@@ -25,13 +25,10 @@ jobs:
       run: |
         sudo apt install python3
         sudo apt install python3-pip
-        pip3 install networkx
+        pip3 install networkx        
     - name: Get Lemon
       run: |
-        bash prepare.sh
-    - name: Get MPI
-      run: |
-        sudo apt install mpich
+        bash prepare.sh        
     - name: Get CGAL
       run: |
         sudo apt-get install libcgal-dev
