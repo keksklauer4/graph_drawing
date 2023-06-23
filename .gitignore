@@ -34,8 +34,6 @@
 
 # Own additions
 external/lemon/*
-external/cgal/*
-external/cgal.tar.xz
 build/*
 .vscode/*
 external/lemon.tar.gz

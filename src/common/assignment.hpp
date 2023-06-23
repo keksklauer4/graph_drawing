@@ -13,7 +13,7 @@ namespace gd
 
       void assign(vertex_t vertex, point_id_t to);
       bool isAssigned(vertex_t vertex) const;
-      point_id_t getAssigned(vertex_t vertex) const;
+      point_id_t getAssigned(vertex_t vertex);
 
     private:
       Vector<point_id_t> m_assignment;

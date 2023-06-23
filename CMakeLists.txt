@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(GD_INCLUDE_LIBS build/external/lemon/ external/lemon/ external/ src/ external/rapidjson/include/)
-set(GD_LINK_LIBS lemon CGAL::CGAL)
+set(GD_LINK_LIBS lemon)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(LEMON_ENABLE_GLPK CACHE BOOL OFF)
@@ -36,6 +36,8 @@ target_include_directories(graph_drawing PRIVATE ${GD_INCLUDE_LIBS})
 
 add_subdirectory(src)
 target_link_libraries(graph_drawing ${GD_LINK_LIBS})
+
+
 add_executable(gd src/main.cpp)
 target_include_directories(gd PRIVATE src ${GD_INCLUDE_LIBS} external/cli11/include/)
 target_link_libraries(gd graph_drawing)

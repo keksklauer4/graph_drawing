@@ -22,7 +22,7 @@ bool VertexAssignment::isAssigned(vertex_t vertex) const
   return isDefined(m_assignment.at(vertex));
 }
 
-point_id_t VertexAssignment::getAssigned(vertex_t vertex) const
+point_id_t VertexAssignment::getAssigned(vertex_t vertex)
 {
-  return m_assignment.at(vertex);
+  return m_assignment[vertex];
 }
