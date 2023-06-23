@@ -1,36 +1,30 @@
 #include "assignment.hpp"
 
-#include <cassert>
 #include <gd_types.hpp>
 #include <common/misc.hpp>
-#include <common/instance.hpp>
 
 using namespace gd;
 
-VertexAssignment::VertexAssignment(const Instance& instance)
+VertexAssignment::VertexAssignment(size_t num_vertices)
 {
-  m_assignment.resize(instance.m_graph.getNbVertices());
-  m_pointToVertex.resize(instance.m_points.getNumPoints());
-  std::fill(m_assignment.begin(), m_assignment.end(), VERTEX_UNDEF);
-  std::fill(m_pointToVertex.begin(), m_pointToVertex.end(), POINT_UNDEF);
+  m_assignment.resize(num_vertices);
+  std::fill(m_assignment.begin(), m_assignment.end(), UINT_UNDEF);
 }
 
 void VertexAssignment::assign(vertex_t vertex, point_id_t to)
 {
-  assert(!isDefined(m_pointToVertex[to]) && "Point is already in use!");
-  if (isDefined(m_assignment[vertex])) m_pointToVertex[m_assignment[vertex]] = POINT_UNDEF;
-  m_pointToVertex[to] = vertex;
+  if (isDefined(m_assignment[vertex])) m_usedPoints.erase(m_assignment[vertex]);
   m_assignment[vertex] = to;
   m_unassigned.erase(vertex);
+  m_usedPoints.insert(to);
   m_assignedVertices.insert(vertex);
 }
 
 void VertexAssignment::unassign(vertex_t vertex)
 {
+  m_usedPoints.erase(m_assignment[vertex]);
   m_unassigned.insert(vertex);
   m_assignedVertices.erase(vertex);
-  assert(isDefined(m_assignment[vertex]) && "Vertex wasn't assigned, i. e. can't unassign!");
-  m_pointToVertex[m_assignment[vertex]] = POINT_UNDEF;
   m_assignment[vertex] = UINT_UNDEF;
 }
 
@@ -46,11 +40,5 @@ point_id_t VertexAssignment::getAssigned(vertex_t vertex) const
 
 bool VertexAssignment::isPointUsed(point_id_t p) const
 {
-  return isDefined(m_pointToVertex[p]);
+  return m_usedPoints.contains(p);
 }
-
-vertex_t VertexAssignment::getAssignedVertex(point_id_t p) const
-{
-  return m_pointToVertex.at(p);
-}
-

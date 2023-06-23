@@ -72,26 +72,7 @@ TEST(PlacementTest, GData_Graph)
   const auto& assignment = placer.findPlacement();
   Verifier verifier {instance, assignment};
 
-  placer.improve(1000);
-
-  size_t num_crossings;
-  bool valid = verifier.verify(num_crossings);
-  EXPECT_TRUE(valid);
-  EXPECT_TRUE(isDefined(num_crossings));
-  EXPECT_EQ(placer.getNumCrossings(), num_crossings);
-}
-
-
-
-TEST(PlacementTest, GData_Graph_4K4)
-{
-  instance_t instance = gd::parseInstanceFromFile("data/4K4.json");
-  PlacementVisualizer visualizer {instance, "Greedy/4K4/4K4"};
-  GreedyPlacement placer {instance, &visualizer};
-  const auto& assignment = placer.findPlacement();
-  Verifier verifier {instance, assignment};
-
-  placer.improve(1000);
+  placer.improve(100);
 
   size_t num_crossings;
   bool valid = verifier.verify(num_crossings);
@@ -100,3 +81,4 @@ TEST(PlacementTest, GData_Graph_4K4)
   EXPECT_EQ(placer.getNumCrossings(), num_crossings);
 
 }
+

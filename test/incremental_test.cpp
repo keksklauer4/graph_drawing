@@ -102,7 +102,7 @@ TEST(IncrementalCollinearTest, FindCollinearPoints_Grid)
       Point(5, 80, 80), // on line but will not be assigned
       Point(6, 51, 50)  // not on line
     });
-  VertexAssignment assignment = create_mock_assignment(instance, {
+  VertexAssignment assignment = create_mock_assignment(6, {
     PAIR(0, 0),
     PAIR(1, 1),
     PAIR(2, 2),
@@ -169,8 +169,8 @@ namespace
   void built_different_permutations(const instance_t& instance, const VertexAssignment& assignment,
     std::initializer_list<vertex_t> permutation1, std::initializer_list<vertex_t> permutation2)
   {
-    VertexAssignment assign1 {instance};
-    VertexAssignment assign2 {instance};
+    VertexAssignment assign1 {instance.m_graph.getNbVertices()};
+    VertexAssignment assign2 {instance.m_graph.getNbVertices()};
     IncrementalCrossing inc1{instance, assign1};
     IncrementalCrossing inc2{instance, assign2};
     for (vertex_t v : permutation1)
@@ -205,7 +205,7 @@ TEST(IncrementalCrossingTest, SameCrossings_Different_Permutations)
       Point(4, 1, 1),
       Point(5, -1, -1)
     });
-  VertexAssignment assignment = create_mock_assignment(instance, {
+  VertexAssignment assignment = create_mock_assignment(6, {
     PAIR(0, 0),
     PAIR(1, 1),
     PAIR(2, 2),
@@ -218,7 +218,7 @@ TEST(IncrementalCrossingTest, SameCrossings_Different_Permutations)
     {0,1,2,3,4,5},
     {5,4,3,2,1,0});
 
-  VertexAssignment as{instance};
+  VertexAssignment as{instance.m_graph.getNbVertices()};
   IncrementalCrossing inc{instance, as};
   IncrementalCrossing inc_static{instance, as};
 
