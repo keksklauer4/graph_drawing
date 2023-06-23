@@ -48,7 +48,7 @@ void PlacementVisualizer::setupDrawing()
 
   m_svg << m_prepared;
 
-  double fontSize = std::min(getWidth() / 40, 40.0);
+  double fontSize = std::min(getWidth() / 30, 40.0);
   double y = 50 + fontSize / 2.0;
 
   std::stringstream titleText {};
@@ -104,7 +104,7 @@ void PlacementVisualizer::initialize()
   m_width = ((x_range.second - x_range.first) / m_gcdScaling + 2) * m_scaling;
   higherTo(m_width, 1000ul);
   m_height = ((y_range.second - y_range.first) / m_gcdScaling + 2) * m_scaling;
-  higherTo(m_height, 1000ul);
+  higherTo(m_width, 1000ul);
 
   m_pointTranslation = std::make_pair(-x_range.first / m_gcdScaling + 1, -y_range.first  / m_gcdScaling + 1);
 
