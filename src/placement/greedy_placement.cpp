@@ -1,7 +1,7 @@
 #include "greedy_placement.hpp"
-#include "common/random_gen.hpp"
-#include "gd_types.hpp"
-#include "placement/placement_metrics.hpp"
+
+#include <common/random_gen.hpp>
+#include <placement/placement_metrics.hpp>
 
 #include <cassert>
 #include <common/misc.hpp>
@@ -23,8 +23,9 @@
 using namespace gd;
 
 
-GreedyPlacement::GreedyPlacement(const Instance& instance, PlacementVisualizer* vis)
+GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, PlacementVisualizer* vis)
   : m_instance(instance),
+    m_order(order),
     m_assignment(instance),
     m_visualizer(vis),
     m_collChecker(), m_incrementalCollinearity(instance, m_assignment, m_collChecker),
@@ -44,12 +45,11 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
   Vector<vertex_t> embedded{};
   embedded.reserve(m_instance.m_graph.getNbVertices());
-  MaxEmbeddedVertexOrder order{ m_instance };
   vertex_t vertex = VERTEX_UNDEF;
 
   RandomGen random{};
   ShortTermVertexSet tried{};
-  while (isDefined((vertex = order.getNext())))
+  while (isDefined((vertex = m_order.getNext())))
   {
     point_id_t target = findEligiblePoint(vertex);
     if (!isDefined(target)) throw std::runtime_error("Can't find a point to map to... :(");
