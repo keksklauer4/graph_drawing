@@ -4,7 +4,7 @@ if ( ${GD_BUILD_TESTS} )
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/google-test)
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lemon)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lemon)
 add_subdirectory(HIP)
 add_subdirectory(Eigen)
 add_subdirectory(hclust)
