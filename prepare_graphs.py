@@ -26,11 +26,9 @@ def dump_graph_on_grid(graph, grid_mult=5):
 
 correct_files = list(filter(lambda f: f.endswith(".graphml"), files))
 length = min(len(correct_files), number_to_dump)
-
-important_files = set(["grafo118.43.graphml"])
 for i, file in enumerate(correct_files):
-    if i >= number_to_dump and file not in important_files:
-        continue
+    if i >= number_to_dump:
+        break
     graph = nx.read_graphml(file)
     file_name = f'{file.split(".graph_ml")[0]}.json'
     with open(f"../../rome/{file_name}", 'w+') as out_file:
