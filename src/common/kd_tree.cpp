@@ -12,6 +12,7 @@ KdTree::KdTree(const PointSet& pset)
 {
   m_points.resize(pset.getNumPoints());
   m_pointIds.resize(pset.getNumPoints());
+  std::cout << "Num points " << pset.getNumPoints() << std::endl;
 
   auto* points = &m_points.at(0);
   auto* ids = &m_pointIds.at(0);

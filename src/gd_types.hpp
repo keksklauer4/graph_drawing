@@ -2,7 +2,6 @@
 #define __GD_GD_TYPES_HPP__
 
 #include <cinttypes>
-#include <cstddef>
 #include <iterator>
 #include <limits>
 #include <ostream>
@@ -56,9 +55,8 @@ namespace gd
   template<typename K, typename V, typename HashFunc = std::hash<K>, typename Allocator = std::allocator<std::pair<const K, V>>>
   using UnorderedMultiMap = std::unordered_multimap<K, V, HashFunc, std::equal_to<K>, Allocator>;
 
-  template<typename T, typename Comparator = std::less<T>> // less -> max prio queue
+  template<typename T, typename Comparator = std::less<T>>
   using PriorityQueue = std::priority_queue<T, Vector<T>, Comparator>;
-
 
   template<typename T>
   using Queue = std::queue<T>;
@@ -141,9 +139,6 @@ namespace gd
     };
 
   NAMED_SIZE_PAIR(VertexPointPair, vertex_t, vertex, point_id_t, point)
-  NAMED_SIZE_PAIR(VertexDegreePair, vertex_t, vertex, size_t, degree)
-  inline bool operator<(const VertexDegreePair& p1, const VertexDegreePair& p2)
-  { return p1.degree < p2.degree; }
 
   class VertexAssignment;
   class Graph;
