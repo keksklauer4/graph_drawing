@@ -3,7 +3,6 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
-#include <iostream>
 #include <memory>
 
 using namespace gd;
@@ -13,18 +12,19 @@ typedef CGAL::Arr_segment_traits_2<Kernel> Traits;
 typedef Traits::Curve_2 Segment;
 typedef Traits::Point_2 Point_2;
 
+#define MAGIC_NUM 1e9
+
 struct CounterFakeIterator
 {
-  CounterFakeIterator(size_t& counter)
-  : m_point(Point_2(0, 0)), m_counter(counter) {}
+  CounterFakeIterator(): m_point(Point_2(MAGIC_NUM, MAGIC_NUM)), m_counter(0) {}
   Point_2& operator*() { return m_point; }
   void operator++() { m_counter++; }
 
-  size_t getCounter() const { return m_counter; }
+  size_t getCounter() const { return m_counter + (m_point.x() != MAGIC_NUM ? 1 : 0); }
 
   private:
     Point_2 m_point;
-    size_t& m_counter;
+    size_t m_counter;
 };
 
 size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& assignment)
@@ -44,10 +44,9 @@ size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& as
     }
   }
 
-  size_t num_crossings = 0;
-  CounterFakeIterator it{num_crossings};
+  CounterFakeIterator it{};
   CGAL::compute_intersection_points(segments.get(), 
       segments.get() + graph.getNbEdges(), it);
 
-  return num_crossings;
+  return it.getCounter();
 }
