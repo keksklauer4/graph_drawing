@@ -10,9 +10,8 @@ i. e. git clone --recursive <url>
 Also install python3, pip3 (i. e. the package python3-pip) and install
 the library networkx using pip (i. e. pip3 install networkx)
 
-2. Obtain Lemon and CGAL by running (obtains the zip and unzips it)
+2. Obtain Lemon by running (obtains the zip and unzips it)
 bash prepare.sh
-sudo apt-get install libcgal-dev
 
 3. Build
 mkdir build
