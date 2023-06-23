@@ -12,6 +12,7 @@
 
 #include <EvalMaxSAT.h>
 #include <iterator>
+#include <iostream>
 #include <placement/sat_placement.cpp>
 
 #include <placement/divide/graph_partitioning.hpp>
