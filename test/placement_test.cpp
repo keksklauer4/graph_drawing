@@ -31,7 +31,8 @@ TEST(PlacementTest, TrivialPlacement_K4)
   });
 
   PlacementVisualizer visualizer {instance, "Greedy/TrivialPlacement_K4/TrivialPlacement_K4"};
-  GreedyPlacement placer {instance, &visualizer};
+  MaxEmbeddedVertexOrder order{ instance };
+  GreedyPlacement placer {instance, order, &visualizer};
   const auto& assignment = placer.findPlacement();
   Verifier verifier {instance, assignment};
   size_t num_crossings;
@@ -60,7 +61,8 @@ TEST(PlacementTest, ImpossiblePlacement_AllCollinear)
       Point(3, 3, 0)
   });
 
-  GreedyPlacement placer {instance};
+  MaxEmbeddedVertexOrder order{ instance };
+  GreedyPlacement placer {instance, order};
   EXPECT_THROW(placer.findPlacement(), std::runtime_error);
 }
 
@@ -68,7 +70,8 @@ TEST(PlacementTest, GData_Graph)
 {
   instance_t instance = gd::parseInstanceFromFile("gdata/rome/grafo118.43.graphml.json");
   PlacementVisualizer visualizer {instance, "Greedy/Rome118.43Graph/Rome118.43Graph"};
-  GreedyPlacement placer {instance, &visualizer};
+  MaxEmbeddedVertexOrder order{ instance };
+  GreedyPlacement placer {instance, order, &visualizer};
   const auto& assignment = placer.findPlacement();
   Verifier verifier {instance, assignment};
 
@@ -87,7 +90,8 @@ TEST(PlacementTest, Graph_4K4)
 {
   instance_t instance = gd::parseInstanceFromFile("data/4K4.json");
   PlacementVisualizer visualizer {instance, "Greedy/4K4/4K4"};
-  GreedyPlacement placer {instance, &visualizer};
+  MaxEmbeddedVertexOrder order{ instance };
+  GreedyPlacement placer {instance, order, &visualizer};
   const auto& assignment = placer.findPlacement();
   Verifier verifier {instance, assignment};
 

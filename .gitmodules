@@ -4,3 +4,12 @@
 [submodule "external/cli11"]
 	path = external/cli11
 	url = https://github.com/CLIUtils/CLI11.git
+[submodule "external/HIP"]
+	path = external/HIP
+	url = https://github.com/KaHIP/KaHIP.git
+[submodule "external/Eigen"]
+	path = external/Eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "external/hclust"]
+	path = external/hclust
+	url = https://github.com/keksklauer4/hclust-cpp.git
