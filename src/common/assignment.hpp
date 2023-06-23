@@ -1,6 +1,7 @@
 #ifndef __GD_ASSIGNMENT_HPP__
 #define __GD_ASSIGNMENT_HPP__
 
+#include <cstddef>
 #include <gd_types.hpp>
 
 namespace gd

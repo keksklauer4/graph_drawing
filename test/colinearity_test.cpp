@@ -142,19 +142,21 @@ TEST(VerifierTest, NoColinearityLongEdge)
   instance_t instance = create_mock_instance(
     {
       PAIR(0, 1),
+      PAIR(0, 3),
+      PAIR(1, 2),
       PAIR(2, 3)
     },
     {
       Point(0, 0, 0),
-      Point(1, 2e8, 2),
-      Point(2, 1e8 + 1, 0),
-      Point(3, 1e8 + 1, 1)
+      Point(1, 0, 1),
+      Point(2, 1000000, 0),
+      Point(3, 1000001, 0)
     });
   VertexAssignment assignment = create_mock_assignment(4, {
     PAIR(0, 0),
-    PAIR(1, 1),
-    PAIR(2, 2),
-    PAIR(3, 3)
+    PAIR(1, 2),
+    PAIR(2, 3),
+    PAIR(3, 1)
   });
   EXPECT_FALSE(gd::trivialCollinearityCheck(instance, assignment));
 }

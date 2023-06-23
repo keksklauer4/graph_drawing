@@ -35,7 +35,7 @@ struct FakeIterator
       m_failed = false;
       m_line = &line;
     }
-
+    
     void operator++(int) { if (!m_failed) checkMapped(); }
     Vertex_handle& operator*() { return m_handle; }
 
@@ -116,8 +116,8 @@ bool gd::trivialCollinearityCheck(const instance_t& instance,
     pointMap.insert(it->getCoordToId());
   }
   bool failed = false;
-  FakeIterator collinearityChecker(assignment, pointMap, failed);
-
+  FakeIterator collinearityChecker(assignment, pointMap, failed); 
+  
   vertex_t lastFromVertex = VERTEX_UNDEF;
   Point from;
   for (const auto& edge : instance.m_graph)
@@ -134,7 +134,7 @@ bool gd::trivialCollinearityCheck(const instance_t& instance,
       if (checkSingleLine(pointset, collinearityChecker, std::make_pair(from, to))) return true;
     }
   }
-
+  
   return false;
 }
 

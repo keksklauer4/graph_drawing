@@ -14,7 +14,7 @@ TEST(GraphTest, graph_K3_2)
   vertex_t v2 = 2;
   vertex_t v3 = 3;
   vertex_t v4 = 4;
-
+  
   instance_t instance = create_mock_instance(
     {
       PAIR(v0, v3),
@@ -35,7 +35,7 @@ TEST(GraphTest, graph_K3_2)
       Point(7, 1, 2),
       Point(8, 2, 2)
     });
-
+  
   EXPECT_EQ(instance.m_graph.getNbVertices(), 5);
 
   EXPECT_EQ(instance.m_graph.getNbEdges(), 6);

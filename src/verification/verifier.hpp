@@ -12,7 +12,7 @@ namespace gd
     public:
       Verifier(const instance_t& instance, const VertexAssignment& assignment)
         : m_instance(instance), m_assignment(assignment) {}
-
+      
       bool verify(size_t& num_crossings) const;
 
     private:

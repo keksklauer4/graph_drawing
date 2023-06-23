@@ -110,11 +110,7 @@ namespace gd
     return std::make_pair(p.second, p.first);
   }
 
-  class VertexAssignment;
-  class Graph;
-  class Verifier;
-  class PointSet;
-  struct Instance;
+
 }
 
 
