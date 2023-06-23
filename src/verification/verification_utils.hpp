@@ -10,13 +10,6 @@ namespace
   {
     return (a <= b && b <= c) || (c <= b && b <= a);
   }
-
-  inline int orientation(const gd::Point& p1, const gd::Point& p2, const gd::Point& p3)
-  {
-    int value = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
-    return value > 0 ? 1 : ( value < 0 ? -1 : 0);
-  }
-
 }
 
 namespace gd
@@ -53,13 +46,6 @@ namespace gd
       && (line.first.first != line.second.first ?
         within_intervall(line.first.first, p.x, line.second.first)
       : within_intervall(line.first.second, p.y, line.second.second));
-  }
-
-  // line p1-p2 , line q1-q2
-  inline bool intersect(const Point& p1, const Point& p2, const Point& q1, const Point& q2)
-  {
-    return (orientation(p1, p2, p2) != orientation(p1, p2, q2))
-      && (orientation(q1, q2, p1) != orientation(q1, q2, p2));
   }
 
 }

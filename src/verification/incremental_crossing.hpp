@@ -9,18 +9,15 @@ namespace gd
   class IncrementalCrossing
   {
     public:
-      IncrementalCrossing(const Instance& instance, const VertexAssignment& assignment);
+      IncrementalCrossing(const VertexAssignment& assignment,const Instance& instance);
 
-      size_t calculateCrossing();
-      void initialPlacement(vertex_t vertex, point_id_t point);
-      size_t getTotalNumCrossings() const;
+      // size_t calculateCrossing();
 
     private:
       const VertexAssignment& m_assignment;
       const Instance& m_instance;
 
-      Vector<size_t> m_numCrossings; // per vertex
-      Vector<vertex_t> m_mappedNeighbors; // used as temporary memory
+
   };
 
 

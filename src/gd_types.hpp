@@ -16,7 +16,7 @@
 
 namespace gd
 {
-  typedef int64_t coordinate_t;
+  typedef int coordinate_t;
   typedef std::pair<coordinate_t,coordinate_t> coordinate_2d_t;
   typedef std::pair<coordinate_2d_t,coordinate_2d_t> line_2d_t;
   typedef std::pair<size_t, size_t> size_pair_t;
@@ -26,7 +26,6 @@ namespace gd
 
   const static size_t UINT_UNDEF = (size_t)-1;
   const static vertex_t VERTEX_UNDEF = (size_t)-1;
-  const static vertex_t POINT_UNDEF = (size_t)-1;
 
   template<typename T, typename Allocator = std::allocator<T>>
   using Vector = std::vector<T, Allocator>;
@@ -72,7 +71,6 @@ namespace gd
 
     std::pair<coordinate_2d_t, point_id_t> getCoordToId() const
     { return std::make_pair(coordinate_2d_t{x, y}, id); }
-    coordinate_2d_t getCoordPair() const { return std::make_pair(x,y); }
     friend bool operator<(const Point& p1, const Point& p2)
     { return p1.id < p2.id; }
 
