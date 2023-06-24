@@ -1,4 +1,6 @@
 #include "local_gurobi.hpp"
+#include "gd_types.hpp"
+#include "gurobi_c.h"
 
 #include <gurobi_c++.h>
 
@@ -14,7 +16,9 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_vars.clear();
 
   m_env = new GRBEnv();
+  m_env->set(GRB_DoubleParam_TimeLimit, 10);
   m_model = new GRBModel(*m_env);
+  m_model->set(GRB_IntParam_Threads, 1);
   m_model->set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
   m_objective = new GRBQuadExpr();
   build_problem();
@@ -22,7 +26,22 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_model->set("NonConvex", "2.0");
 
   m_model->optimize();
+  if (m_model->get(GRB_IntAttr_SolCount) > 0)
+  {
+    size_t idx = 0;
+    auto vertexRange = m_functor->get_vertex_range();
+    for (auto v = vertexRange.first; v != vertexRange.second; ++v)
+    {
+      auto pointRange = m_functor->get_points(*v);
+      for (auto p = pointRange.first; p != pointRange.second; ++p)
+      {
+        double val = m_vars[std::make_pair(*v, p->second)]->get(GRB_DoubleAttr_X);
+        if (val > 0.99) functor.set_mapped(idx++, p->second);
+      }
+    }
+  }
 
+  delete[] m_rawVariables;
   delete m_objective;
   delete m_model;
   delete m_env;
@@ -30,7 +49,7 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
 
 void LocalGurobi::create_variables()
 {
-  m_rawVariables = m_model->addVars(m_functor->get_num_vars());
+  m_rawVariables = m_model->addVars(m_functor->get_num_vars(), GRB_BINARY);
   GRBVar* nextVar = m_rawVariables;
   auto vertex_range = m_functor->get_vertex_range();
   for (auto v = vertex_range.first; v != vertex_range.second; ++v)
@@ -41,6 +60,9 @@ void LocalGurobi::create_variables()
       m_vars.insert(std::make_pair(vertex_point_pair_t{*v, p->second}, nextVar++));
     }
   }
+  m_functor->get_mapping([&](vertex_t v, point_id_t p){
+    m_vars[vertex_point_pair_t{v,p}]->set(GRB_DoubleAttr_Start, 1.0);
+  });
 }
 
 void LocalGurobi::create_vertex_mapped_csts()
@@ -101,7 +123,7 @@ void LocalGurobi::create_collinear_triples_csts()
         m_model->addConstr(
           (*m_vars[vertex_point_pair_t{u, pointU}]
           + *m_vars[vertex_point_pair_t{v, pointV}]
-          + *m_vars[vertex_point_pair_t{w, pointW}]) <= 1
+          + *m_vars[vertex_point_pair_t{w, pointW}]) <= 2
         );
 
   });

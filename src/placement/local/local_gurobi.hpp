@@ -1,12 +1,12 @@
 #ifndef __GD_LOCAL_GUROBI_HPP__
 #define __GD_LOCAL_GUROBI_HPP__
 
-#include "gurobi_c++.h"
 #include <placement/local/local_reopt.hpp>
 
 class GRBEnv;
 class GRBModel;
 class GRBVar;
+class GRBQuadExpr;
 
 namespace gd
 {
@@ -19,6 +19,7 @@ namespace gd
     LocalGurobi(const Instance& instance, const VertexAssignment& assignment)
       : LocalReOpt(instance, assignment) {}
     ~LocalGurobi();
+
     void optimize(LocalImprovementFunctor& functor) override;
 
 

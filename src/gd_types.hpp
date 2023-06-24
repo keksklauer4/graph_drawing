@@ -14,6 +14,7 @@
 #include <set>
 #include <stack>
 #include <queue>
+#include <cassert>
 
 #include <cstring>
 
@@ -163,6 +164,7 @@ namespace gd
   class KdTree;
   class PointClustering;
   class HierarchicalGraph;
+  class IncrementalCollinear;
 }
 
 

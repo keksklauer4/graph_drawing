@@ -26,11 +26,35 @@ namespace gd
 
     size_t get_num_vars() const { return m_vertexToPoint.size(); }
 
+    bool is_valid() const { return m_valid; }
+
+    template<typename Functor>
+    void get_mapping(Functor func) const
+    {
+      assert(m_vertices.size() == m_previousMapping.size() && "Bad mapping!");
+      for (size_t idx = 0; idx < m_vertices.size(); ++idx)
+      {
+        func(m_vertices.at(idx), m_previousMapping.at(idx));
+      }
+    }
+
+    void set_mapped(size_t idx, point_id_t p) { m_previousMapping[idx] = p; }
+
+  protected:
+    void record_previous_mapping(const VertexAssignment& assignment);
+    void reset_base();
+    void build_datastructures();
+
+
   protected:
     VertexVector m_vertices;
     PointIdVector m_pointIds;
     MultiMap<vertex_t, point_id_t> m_vertexToPoint;
     MultiMap<point_id_t, vertex_t> m_pointToVertex;
+
+    PointIdVector m_previousMapping;
+
+    bool m_valid = false;
   };
 
   class LocalReOpt
@@ -162,7 +186,7 @@ namespace gd
           const auto& p1 = pset.getPoint(pointU->second);
           auto neighbors = m_instance.m_graph.getNeighborIterator(*u);
           size_t num_crossings = 0;
-          for (auto neighbor = neighbors.first; neighbor != neighbors.second; neighbor)
+          for (auto neighbor = neighbors.first; neighbor != neighbors.second; ++neighbor)
           {
             if (!m_assignment.isAssigned(*neighbor)) continue;
             const auto& q1 = pset.getPoint(m_assignment.getAssigned(*neighbor));

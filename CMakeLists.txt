@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.7)
 project(graph_drawing)
 
 option(GD_BUILD_TESTS "Build graph_drawing test executable" ON)
-enable_language(C CXX)
+enable_language(CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 
@@ -17,8 +17,8 @@ set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
                     ${GUROBI_INCLUDE_DIRS})
 
 set(GD_LINK_LIBS CGAL::CGAL kahip
-        Eigen3::Eigen hclust EvalMaxSAT
-        ${GUROBI_CXX_LIBRARY}) # lemon)
+        Eigen3::Eigen hclust EvalMaxSAT) # lemon)
+set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -51,21 +51,22 @@ file(COPY external/rapidjson/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/external)
 
 add_library(graph_drawing)
 
+message("Gurobi lib " ${GUROBI_CXX_LIBRARY})
 
 target_include_directories(graph_drawing PRIVATE ${GD_INCLUDE_LIBS})
 
 add_subdirectory(src)
-target_link_libraries(graph_drawing ${GD_LINK_LIBS} ${GUROBI_LIBRARY})
+target_link_libraries(graph_drawing ${GD_LINK_LIBS} ${GD_GUROBI_LINK_LIBS})
 add_executable(gd src/main.cpp)
 target_include_directories(gd PRIVATE src ${GD_INCLUDE_LIBS} external/cli11/include/)
-target_link_libraries(gd graph_drawing ${GUROBI_LIBRARY})
+target_link_libraries(gd graph_drawing ${GD_GUROBI_LINK_LIBS})
 
 
 if ( ${GD_BUILD_TESTS} )
     add_executable(gd_test)
     add_subdirectory(test)
     target_include_directories(gd_test PRIVATE src ${GD_INCLUDE_LIBS} test)
-    target_link_libraries(gd_test graph_drawing gtest_main)
+    target_link_libraries(gd_test graph_drawing gtest_main ${GD_GUROBI_LINK_LIBS})
 
     file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     file(COPY test/gdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

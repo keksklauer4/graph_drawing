@@ -1,4 +1,6 @@
 #include "greedy_placement.hpp"
+#include "gd_types.hpp"
+#include "placement/local/local_reopt.hpp"
 
 #include <common/random_gen.hpp>
 #include <placement/placement_metrics.hpp>
@@ -19,6 +21,9 @@
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
+
+#include <placement/local/local_gurobi.hpp>
+#include <placement/local/local_functors.hpp>
 
 using namespace gd;
 
@@ -49,6 +54,10 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
   RandomGen random{};
   ShortTermVertexSet tried{};
+  LocalImprovementVertexNeighbors improvementFunctor{m_instance, m_assignment};
+  LocalGurobi gurobi{m_instance, m_assignment};
+  KdTree kdtree {m_instance.m_points};
+
   while (isDefined((vertex = m_order.getNext())))
   {
     point_id_t target = findEligiblePoint(vertex);
@@ -65,11 +74,40 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       });
     }
 
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 5; ++i)
     {
       vertex_t v = random.getRandom(embedded);
-      if (tried.contains(v)) continue;
-      tryImprove(v);
+      // if (tried.contains(v)) continue;
+      // tryImprove(v);
+
+      improvementFunctor.reset();
+      improvementFunctor.initialize(v, m_assignment.getAssigned(v));
+      if (!improvementFunctor.is_valid()) continue;
+      auto vRange = improvementFunctor.get_vertex_range();
+      for (auto v = vRange.first; v != vRange.second; ++v)
+      {
+        if (!m_assignment.isAssigned(*v)) continue;
+        m_incrementalCollinearity.deplace(*v);
+        m_incrementalCrossing.deplace(*v, m_assignment.getAssigned(*v));
+        m_assignment.unassign(*v);
+      }
+      improvementFunctor.set_points(kdtree, m_incrementalCollinearity);
+      if (!improvementFunctor.is_valid())
+      {
+        improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
+          assert(isDefined(p) && "Point is undefined!");
+          m_incrementalCollinearity.place(v, p);
+          m_incrementalCrossing.place(v, p);
+          m_assignment.assign(v, p);
+        });
+      }
+      gurobi.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&improvementFunctor));
+      improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
+        assert(isDefined(p) && "Point is undefined!");
+        m_incrementalCollinearity.place(v, p);
+        m_incrementalCrossing.place(v, p);
+        m_assignment.assign(v, p);
+      });
     }
     tried.clear();
   }

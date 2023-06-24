@@ -47,11 +47,18 @@ int main(int argc, const char** argv)
 
   std::cout << "Done parsing file." << std::endl;
 
+  std::unique_ptr<PlacementVisualizer> visualizer;
+  if (!visualization_file_prefix.empty())
+  {
+    visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);
+  }
+
   PartitioningVertexOrder order{ hierarchy.get_range() };
-  GreedyPlacement placement{instance, order};
+  GreedyPlacement placement{ instance, order, visualizer.get() };
   const auto& assignment = placement.findPlacement();
   placement.improve(improvement_iters);
 
+  /*
   //std::vector<std::vector<vertex_t>> partitions = {{0, 1, 3, 4}, {2, 5}, {6, 7}, {8}};
   //std::vector<std::vector<point_id_t>> clusters = {{0, 1, 2, 3, 7, 8, 9, 10, 14, 15, 16, 17}, {21, 22, 23, 24, 28, 29, 30, 31}, {4, 5, 6, 11, 12, 13, 18,19, 20}, {25, 26, 27, 32, 33, 34}};
   //std::vector<int> n2p{0, 0, 1, 0, 0, 1, 2, 2, 3};
@@ -117,16 +124,7 @@ int main(int argc, const char** argv)
   }
   int max_iterations = 500;
   SATPlacement sat = SATPlacement(instance,partitions, clusters, n2p,po2c, p2c, c2p, max_iterations);
-
-
-  /*
-  std::unique_ptr<PlacementVisualizer> visualizer;
-  if (!visualization_file_prefix.empty())
-  {
-    visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);
-    /*visualizer->setHierarchy(hierarchy);
-    visualizer->setClustering(points);
-    visualizer->drawClustering();*/
+  */
 
   Verifier verifier{instance, assignment};
   size_t num_crossings = 0;
