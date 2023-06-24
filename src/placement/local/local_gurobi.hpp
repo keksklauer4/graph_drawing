@@ -1,22 +1,24 @@
-#ifndef __GD_LOCAL_SAT_HPP__
-#define __GD_LOCAL_SAT_HPP__
+#ifndef __GD_LOCAL_GUROBI_HPP__
+#define __GD_LOCAL_GUROBI_HPP__
 
+#include "gurobi_c++.h"
 #include <placement/local/local_reopt.hpp>
 
-#include <EvalMaxSAT.h>
+class GRBEnv;
+class GRBModel;
+class GRBVar;
 
 namespace gd
 {
 
-  class LocalSAT : public LocalReOpt
+  class LocalGurobi : public LocalReOpt
   {
-    typedef int SatVar;
     typedef std::pair<point_id_t, vertex_t> vertex_point_pair_t;
-    typedef Map<vertex_point_pair_t, SatVar, PairLexicographicOrdering<size_t>> SatVariableMap;
+    typedef Map<vertex_point_pair_t, GRBVar*, PairLexicographicOrdering<size_t>> GrbVariableMap;
   public:
-    LocalSAT(const Instance& instance, const VertexAssignment& assignment)
+    LocalGurobi(const Instance& instance, const VertexAssignment& assignment)
       : LocalReOpt(instance, assignment) {}
-    ~LocalSAT();
+    ~LocalGurobi();
     void optimize(LocalImprovementFunctor& functor) override;
 
 
@@ -31,12 +33,14 @@ namespace gd
     void create_pair_crossings() override;
 
   private:
-    EvalMaxSAT* m_solver;
+    GRBEnv* m_env;
+    GRBModel* m_model;
 
-    SatVariableMap m_satVariables;
-    Vector<SatVar> m_clauseVec;
+    GrbVariableMap m_vars;
+    GRBVar* m_rawVariables; // just a pointer to delete afterwards
+    GRBQuadExpr* m_objective;
   };
-}
 
+}
 
 #endif

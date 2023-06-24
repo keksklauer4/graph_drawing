@@ -10,7 +10,6 @@
 #include <iostream>
 #include <vector>
 #include <verification/trivial_collinear.cpp>
-#include <EvalMaxSAT.h>
 
 using namespace gd;
 

@@ -13,9 +13,12 @@ set(CMAKE_BUILD_TYPE Release)
 set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
                     external/rapidjson/include/ external/HIP/interface/
                     ${EIGEN3_INCLUDE_DIR}/ external/hclust/
-                    ${GD_SAT_SOLVER_INCLUDES})
+                    ${GD_SAT_SOLVER_INCLUDES}
+                    ${GUROBI_INCLUDE_DIRS})
 
-set(GD_LINK_LIBS CGAL::CGAL kahip Eigen3::Eigen hclust EvalMaxSAT) # lemon)
+set(GD_LINK_LIBS CGAL::CGAL kahip
+        Eigen3::Eigen hclust EvalMaxSAT
+        ${GUROBI_CXX_LIBRARY}) # lemon)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -52,10 +55,10 @@ add_library(graph_drawing)
 target_include_directories(graph_drawing PRIVATE ${GD_INCLUDE_LIBS})
 
 add_subdirectory(src)
-target_link_libraries(graph_drawing ${GD_LINK_LIBS})
+target_link_libraries(graph_drawing ${GD_LINK_LIBS} ${GUROBI_LIBRARY})
 add_executable(gd src/main.cpp)
 target_include_directories(gd PRIVATE src ${GD_INCLUDE_LIBS} external/cli11/include/)
-target_link_libraries(gd graph_drawing)
+target_link_libraries(gd graph_drawing ${GUROBI_LIBRARY})
 
 
 if ( ${GD_BUILD_TESTS} )

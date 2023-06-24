@@ -3,6 +3,7 @@
 #include <common/assignment.hpp>
 #include <utility>
 #include <vector>
+#include <EvalMaxSAT.h>
 
 namespace gd
 {

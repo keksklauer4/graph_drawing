@@ -108,7 +108,7 @@ void LocalSAT::create_pair_crossings()
         {-m_satVariables[vertex_point_pair_t{u, pointU}],
            -m_satVariables[vertex_point_pair_t{v, pointV}]}
       );
-      m_solver->addWeightedClause(m_clauseVec, num_crossings);
+      m_solver->addWeightedClause(m_clauseVec, -num_crossings);
   });
   m_clauseVec.clear();
 }
@@ -121,7 +121,7 @@ void LocalSAT::create_single_crossings()
       m_clauseVec.insert(m_clauseVec.begin(),
         {-m_satVariables[vertex_point_pair_t{u, pointU}]}
       );
-      m_solver->addWeightedClause(m_clauseVec, num_crossings);
+      m_solver->addWeightedClause(m_clauseVec, -num_crossings);
   });
   m_clauseVec.clear();
 }

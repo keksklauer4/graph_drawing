@@ -24,6 +24,8 @@ namespace gd
     RangeIterator<PointIdVector::const_iterator> get_point_range() const
     { return std::make_pair(m_pointIds.begin(), m_pointIds.end()); }
 
+    size_t get_num_vars() const { return m_vertexToPoint.size(); }
+
   protected:
     VertexVector m_vertices;
     PointIdVector m_pointIds;
@@ -169,32 +171,9 @@ namespace gd
               if (gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second))) num_crossings++;
             }
           }
-          if (num_crossings > 0) func(*u, pointU->second, num_crossings);
+          if (num_crossings != 0) func(*u, pointU->second, num_crossings);
         }
       }
-
-/*
-
-
-          auto vRange = m_functor->get_points(*v);
-          line_2d_t line {};
-          for ()
-          {
-            const auto& p1 = pset.getPoint(pointU->second);
-            for (auto pointV = vRange.first; pointV != vRange.second; ++pointV)
-            {
-              const auto& q1 = pset.getPoint(pointV->second);
-              size_t num_crossings = 0;
-              for (const auto& edge : existing_edges)
-              {
-                if (gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second))) num_crossings++;
-              }
-
-              if (num_crossings != 0) func(*u, pointU->second, *v, pointV->second, num_crossings);
-            }
-          }
-        }
-      }*/
     }
 
     template<typename Functor>
