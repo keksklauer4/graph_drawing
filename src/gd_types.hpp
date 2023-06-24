@@ -66,6 +66,9 @@ namespace gd
   template<typename T>
   using Stack = std::stack<T, std::vector<T>>;
 
+  template<typename Iterator>
+  using RangeIterator = std::pair<Iterator, Iterator>;
+
   typedef struct Edge
   {
     Edge(): u(VERTEX_UNDEF), v(VERTEX_UNDEF) {}
@@ -146,6 +149,9 @@ namespace gd
   { return p1.degree < p2.degree; }
 
   typedef Map<coordinate_2d_t, point_id_t, PairLexicographicOrdering<coordinate_t>> CoordinateToIdMap;
+  typedef Set<vertex_t> VertexSet;
+  typedef Vector<vertex_t> VertexVector;
+  typedef Vector<point_id_t> PointIdVector;
 
   class VertexAssignment;
   class Graph;

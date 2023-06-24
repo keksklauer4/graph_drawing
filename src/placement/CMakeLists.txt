@@ -1,5 +1,6 @@
 
 add_subdirectory(divide)
+add_subdirectory(local)
 
 target_sources(graph_drawing PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/placement_metrics.cpp
