@@ -32,7 +32,8 @@ namespace gd
     const VertexAssignment& assignment, const KdTree& kdtree,
     IncrementalCollinear& collinear,
     MultiMap<vertex_t, point_id_t>& options,
-    vertex_t v, const Point& center, bool wasAssigned
+    vertex_t v, const Point& center,
+    Set<point_id_t>& points_included, bool wasAssigned
   );
 }
 

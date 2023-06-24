@@ -4,6 +4,7 @@
 #include <gd_types.hpp>
 #include <common/instance.hpp>
 #include <common/assignment.hpp>
+#include <ostream>
 #include <verification/verification_utils.hpp>
 
 namespace gd
@@ -56,6 +57,7 @@ namespace gd
 
     bool m_valid = false;
   };
+
 
   class LocalReOpt
   {

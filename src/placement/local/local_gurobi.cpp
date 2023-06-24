@@ -1,8 +1,12 @@
 #include "local_gurobi.hpp"
-#include "gd_types.hpp"
-#include "gurobi_c.h"
 
+#include <common/misc.hpp>
+#include <io/printing.hpp>
+
+
+#include <gurobi_c.h>
 #include <gurobi_c++.h>
+#include <stdexcept>
 
 using namespace gd;
 
@@ -26,6 +30,9 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_model->set("NonConvex", "2.0");
 
   m_model->optimize();
+  /*m_model->write("out.mps");
+  m_model->write("out.lp");
+  m_model->write("out.mst");*/
   if (m_model->get(GRB_IntAttr_SolCount) > 0)
   {
     size_t idx = 0;
@@ -61,6 +68,8 @@ void LocalGurobi::create_variables()
     }
   }
   m_functor->get_mapping([&](vertex_t v, point_id_t p){
+    if (!isDefined(p) || !m_vars.contains(vertex_point_pair_t{v,p})) return;
+
     m_vars[vertex_point_pair_t{v,p}]->set(GRB_DoubleAttr_Start, 1.0);
   });
 }

@@ -9,9 +9,9 @@
 
 using namespace gd;
 
-#define MAX_NUM_VERTICES 7
+#define MAX_NUM_VERTICES 10
 #define MIN_NUM_VERTICES 3
-#define MAX_NUM_POINTS 6
+#define MAX_NUM_POINTS 10
 
 
 LocalImprovementVertexNeighbors::LocalImprovementVertexNeighbors(
@@ -65,16 +65,18 @@ void LocalImprovementVertexNeighbors::set_points(
   const KdTree& kdtree, IncrementalCollinear& collinear)
 {
   const auto& pset = m_instance.m_points;
+  Set<point_id_t> points_included{};
   for(size_t idx = 0; idx < m_vertices.size(); ++idx)
   {
     size_t num_found;
+    points_included.clear();
     if (m_vertices[idx] != m_chosen)
     {
       num_found = gd::get_viable_neighbors(
         m_assignment, kdtree, collinear,
         m_vertexToPoint, m_vertices[idx],
         pset.getPoint(m_previousMapping[idx]),
-        true
+        points_included, true
       );
     }
     else
@@ -83,7 +85,7 @@ void LocalImprovementVertexNeighbors::set_points(
         m_assignment, kdtree, collinear,
         m_vertexToPoint, m_chosen,
         pset.getPoint(m_center),
-        m_wasAssignedToCenter
+        points_included, m_wasAssignedToCenter
       );
     }
 
@@ -108,23 +110,27 @@ size_t gd::get_viable_neighbors(
     const VertexAssignment& assignment, const KdTree& kdtree,
     IncrementalCollinear& collinear,
     MultiMap<vertex_t, point_id_t>& options,
-    vertex_t v, const Point& center, bool wasAssigned)
+    vertex_t v, const Point& center,
+    Set<point_id_t>& points_included, bool)
 {
   size_t num_options = 0;
-  if (wasAssigned)
+  /*if (wasAssigned)
   {
     num_options++;
     options.insert(std::make_pair(v, center.id));
-  }
+    points_included.insert(center.id);
+  }*/
 
   kdtree.k_nearest_neighbors(center, MAX_NUM_POINTS,
     [&](point_id_t p) -> bool {
-      if(!assignment.isPointUsed(p)
+      if(!points_included.contains(p)
+        && !assignment.isPointUsed(p)
         && !collinear.isPointInvalid(p)
         && collinear.isValidCandidate(v, p))
       {
         options.insert(std::make_pair(v, p));
         num_options++;
+        points_included.insert(p);
         return true;
       }
       return false;

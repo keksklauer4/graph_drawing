@@ -83,13 +83,13 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       improvementFunctor.reset();
       improvementFunctor.initialize(v, m_assignment.getAssigned(v));
       if (!improvementFunctor.is_valid()) continue;
-      auto vRange = improvementFunctor.get_vertex_range();
-      for (auto v = vRange.first; v != vRange.second; ++v)
+      auto wRange = improvementFunctor.get_vertex_range();
+      for (auto w = wRange.first; w != wRange.second; ++w)
       {
-        if (!m_assignment.isAssigned(*v)) continue;
-        m_incrementalCollinearity.deplace(*v);
-        m_incrementalCrossing.deplace(*v, m_assignment.getAssigned(*v));
-        m_assignment.unassign(*v);
+        if (!m_assignment.isAssigned(*w)) continue;
+        m_incrementalCollinearity.deplace(*w);
+        m_incrementalCrossing.deplace(*w, m_assignment.getAssigned(*w));
+        m_assignment.unassign(*w);
       }
       improvementFunctor.set_points(kdtree, m_incrementalCollinearity);
       if (!improvementFunctor.is_valid())
@@ -104,9 +104,15 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       gurobi.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&improvementFunctor));
       improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
         assert(isDefined(p) && "Point is undefined!");
+        assert(m_incrementalCollinearity.isValidCandidate(v, p) && "Point is actually invalid!");
         m_incrementalCollinearity.place(v, p);
         m_incrementalCrossing.place(v, p);
         m_assignment.assign(v, p);
+      });
+
+      m_visualizer->draw([&](std::ostream& stream){
+        stream << "Gurobi local opt [total: "
+          << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
     }
     tried.clear();
