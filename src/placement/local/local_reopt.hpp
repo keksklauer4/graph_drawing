@@ -85,6 +85,7 @@ namespace gd
       create_pair_crossings();
       create_semi_internal_crossings();
       create_internal_crossings();
+      create_pair_neighbor_crossings();
 
       m_subgraph.clear();
       m_existing_edges.clear();
@@ -100,6 +101,7 @@ namespace gd
     virtual void create_pair_crossings() = 0;
     virtual void create_semi_internal_crossings() = 0;
     virtual void create_internal_crossings() = 0;
+    virtual void create_pair_neighbor_crossings() = 0;
 
     void build_datastructures();
 
@@ -114,6 +116,7 @@ namespace gd
         auto uRange = m_functor->get_points(*u);
         for (auto v = u + 1; v != vertex_range.second; ++v)
         {
+          if (!graph.connected(*u, *v)) continue; // TODO: only subgraph
           auto vRange = m_functor->get_points(*v);
           line_2d_t line {};
           for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
@@ -155,12 +158,14 @@ namespace gd
     void enumerate_triplet_collinearities(Functor func) const
     {
       const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
       {
         auto uRange = m_functor->get_points(*u);
         for (auto v = u + 1; v != vertex_range.second; ++v)
         {
+          if (!graph.connected(*u, *v)) continue; // TODO: only subgraph
           auto vRange = m_functor->get_points(*v);
           line_2d_t line {};
           for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
@@ -223,12 +228,14 @@ namespace gd
     void enumerate_pair_crossings(Functor func) const
     {
       const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
       {
         auto uRange = m_functor->get_points(*u);
         for (auto v = u + 1; v != vertex_range.second; ++v)
         {
+          if (!graph.connected(*u, *v)) continue; // TODO: only subgraph
           auto vRange = m_functor->get_points(*v);
           line_2d_t line {};
           for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
@@ -291,9 +298,9 @@ namespace gd
 
               FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
                 FOR_LOOP_POINTS(pV, v_point_range, pointV, pU->second == pV->second, {
-                  FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second && pX->second == pV->second, {
+                  FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second || pX->second == pV->second, {
                     FOR_LOOP_POINTS(pY, y_point_range, pointY,
-                            pY->second == pU->second && pY->second == pV->second && pY->second == pX->second, {
+                            pY->second == pU->second || pY->second == pV->second || pY->second == pX->second, {
 
                       if (gd::intersect(pointU, pointV, pointX, pointY))
                       {
@@ -337,29 +344,80 @@ namespace gd
             auto v_point_range = m_functor->get_points(v->second);
 
             auto neighborRange = graph.getNeighborIterator(*x);
-            for (auto neighbor = neighborRange.first; neighbor != neighborRange.second; ++neighbor)
-            {
-              if (*neighbor == *u || *neighbor == v->second
-                  || !m_assignment.isAssigned(*neighbor)) continue;
-              const auto& neighborPoint = pset.getPoint(m_assignment.getAssigned(*neighbor));
-              FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
-                FOR_LOOP_POINTS(pV, v_point_range, pointV, pU->second == pV->second, {
-                  FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second && pX->second == pV->second, {
 
-                      if (gd::intersect(pointU, pointV, pointX, neighborPoint))
-                      {
-                        func(*u, pointU.id, v->second, pointV.id,
-                             *x, pointX.id);
-                      }
-                  })
+            FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
+              FOR_LOOP_POINTS(pV, v_point_range, pointV, pU->second == pV->second, {
+                FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second || pX->second == pV->second, {
+                  size_t num_crossings = 0;
+                  for (auto neighbor = neighborRange.first; neighbor != neighborRange.second; ++neighbor)
+                  {
+                    if (*neighbor == *u || *neighbor == v->second
+                        || !m_assignment.isAssigned(*neighbor)) continue;
+                    const auto& neighborPoint = pset.getPoint(m_assignment.getAssigned(*neighbor));
+                    if (gd::intersect(pointU, pointV, pointX, neighborPoint))
+                    {
+                      num_crossings++;
+                    }
+                  }
+                  if (num_crossings == 0) continue;
+                  func(*u, pointU.id, v->second, pointV.id,
+                       *x, pointX.id, num_crossings);
+
                 })
               })
-            }
+            })
+
           }
         }
       }
     }
+
+    template<typename Functor>
+    void enumerate_pair_neighbor_crossings(Functor func) const
+    {
+      const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
+      auto vertex_range = m_functor->get_vertex_range();
+
+      for (auto u = vertex_range.first; u != vertex_range.second; ++u)
+      {
+        auto u_point_range = m_functor->get_points(*u);
+        auto neighborURange = graph.getNeighborIterator(*u);
+        for (auto x = vertex_range.first; x != vertex_range.second; ++x)
+        {
+          if (u == x) continue;
+          auto x_point_range = m_functor->get_points(*x);
+
+          auto neighborXRange = graph.getNeighborIterator(*x);
+
+          FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
+            FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second, {
+              size_t num_crossings = 0;
+
+              for (auto neighborU = neighborURange.first; neighborU != neighborURange.second; ++neighborU)
+              {
+                if (!m_assignment.isAssigned(*neighborU)) continue;
+                const auto& uNeighborPoint = pset.getPoint(m_assignment.getAssigned(*neighborU));
+                for (auto neighborX = neighborXRange.first; neighborX != neighborXRange.second; ++neighborX)
+                {
+                  if (!m_assignment.isAssigned(*neighborX)) continue;
+                  if (gd::intersect(pointU, uNeighborPoint, pointX, pset.getPoint(m_assignment.getAssigned(*neighborX))))
+                  {
+                      num_crossings++;
+                  }
+                }
+              }
+              if (num_crossings == 0) continue;
+              func(*u, pointU.id, *x, pointX.id, num_crossings);
+
+            })
+          })
+        }
+      }
+    }
 #undef FOR_LOOP
+
+
 
   protected:
     const Instance& m_instance;

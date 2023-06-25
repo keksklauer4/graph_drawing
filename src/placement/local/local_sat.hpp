@@ -31,6 +31,7 @@ namespace gd
     void create_pair_crossings() override;
     void create_internal_crossings() override;
     void create_semi_internal_crossings() override;
+    void create_pair_neighbor_crossings() override;
 
   private:
     EvalMaxSAT* m_solver;

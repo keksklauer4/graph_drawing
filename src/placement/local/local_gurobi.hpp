@@ -38,6 +38,7 @@ namespace gd
     void create_pair_crossings() override;
     void create_internal_crossings() override;
     void create_semi_internal_crossings() override;
+    void create_pair_neighbor_crossings() override;
 
     GRBVar& get_edge_var(vertex_t u, point_id_t pU, vertex_t v, point_id_t pV);
     std::pair<GRBVar*, GRBVar*> get_best_triplet(vertex_t u, point_id_t pU, vertex_t v,

@@ -47,7 +47,7 @@ const static size_t nbColors = sizeof(colors)/sizeof(colors[0]);
 
 void PlacementVisualizer::setupDrawing()
 {
-  std::cout << "Iteration " << m_iteration << std::endl;
+  std::cout << "Iteration " << (m_iteration + 1) << "\n==================" << std::endl;
   if (!m_initialized) initialize();
 
   m_svg << m_prepared;

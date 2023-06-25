@@ -76,6 +76,8 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
     for (int i = 0; i < 5; ++i)
     {
+      size_t before = m_incrementalCrossing.getTotalNumCrossings();
+      std::cout << "Before " << before << std::endl;
       vertex_t v = random.getRandom(embedded);
       // if (tried.contains(v)) continue;
       // tryImprove(v);
@@ -101,6 +103,8 @@ const VertexAssignment& GreedyPlacement::findPlacement()
           m_assignment.assign(v, p);
         });
       }
+      size_t now = m_incrementalCrossing.getTotalNumCrossings();
+      std::cout << "====> Expecting " << (before-now) << " as mip start " << std::endl;
       gurobi.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&improvementFunctor));
       improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
         assert(isDefined(p) && "Point is undefined!");
@@ -114,6 +118,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
         stream << "Gurobi local opt [total: "
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
+      std::cout << "End " << m_incrementalCrossing.getTotalNumCrossings() << std::endl;
     }
     tried.clear();
   }

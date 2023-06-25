@@ -135,3 +135,9 @@ void LocalSAT::create_semi_internal_crossings()
 {
   assert(false && "TODO: create_semi_internal_crossings");
 }
+
+
+void LocalSAT::create_pair_neighbor_crossings()
+{
+  assert(false && "TODO: create_pair_neighbor_crossings");
+}

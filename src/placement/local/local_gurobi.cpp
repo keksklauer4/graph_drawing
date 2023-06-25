@@ -3,6 +3,7 @@
 #include "placement/local/local_reopt.hpp"
 
 #include <common/misc.hpp>
+#include <cstddef>
 #include <io/printing.hpp>
 
 
@@ -28,6 +29,11 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   build_problem();
   m_model->setObjective(*m_objective);
   m_model->set("NonConvex", "2.0");
+
+  m_model->write("out.lp");
+  m_model->write("out.mps");
+  m_model->write("out.mst");
+  m_model->write("out.rew");
 
   m_model->optimize();
   if (m_model->get(GRB_IntAttr_SolCount) > 0)
@@ -197,10 +203,10 @@ void LocalGurobi::create_semi_internal_crossings()
 {
   enumerate_semi_internal_crossings(
     [&](vertex_t u, point_id_t pU, vertex_t v, point_id_t pV,
-        vertex_t x, point_id_t pX) {
+        vertex_t x, point_id_t pX, size_t num_crossings) {
 
       auto vars = get_best_triplet(u, pU, v, pV, x, pX);
-      *m_objective += *vars.first * *vars.second;
+      *m_objective += num_crossings * (*vars.first) * (*vars.second);
   });
 }
 
@@ -221,4 +227,15 @@ std::pair<GRBVar*, GRBVar*> LocalGurobi::get_best_triplet(
   { return std::make_pair(findIt->second, m_vars[vertex_point_pair_t{u, pU}]); }
 
   return std::make_pair(&get_edge_var(u, pU, v, pV), m_vars[vertex_point_pair_t{x, pX}]);
+}
+
+void LocalGurobi::create_pair_neighbor_crossings()
+{
+  enumerate_pair_neighbor_crossings(
+    [&](vertex_t u, point_id_t pU, vertex_t x, point_id_t pX, size_t num_crossings) {
+
+      *m_objective += num_crossings
+          * (*m_vars[vertex_point_pair_t{u, pU}])
+          * (*m_vars[vertex_point_pair_t{x, pX}]);
+  });
 }
