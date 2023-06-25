@@ -29,6 +29,8 @@ namespace gd
     void create_collinear_triples_csts() override;
     void create_single_crossings() override;
     void create_pair_crossings() override;
+    void create_internal_crossings() override;
+    void create_semi_internal_crossings() override;
 
   private:
     EvalMaxSAT* m_solver;

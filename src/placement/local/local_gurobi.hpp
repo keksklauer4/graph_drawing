@@ -1,7 +1,11 @@
 #ifndef __GD_LOCAL_GUROBI_HPP__
 #define __GD_LOCAL_GUROBI_HPP__
 
+#include "gd_types.hpp"
 #include <placement/local/local_reopt.hpp>
+
+#include <gurobi_c.h>
+#include <gurobi_c++.h>
 
 class GRBEnv;
 class GRBModel;
@@ -32,6 +36,12 @@ namespace gd
     void create_collinear_triples_csts() override;
     void create_single_crossings() override;
     void create_pair_crossings() override;
+    void create_internal_crossings() override;
+    void create_semi_internal_crossings() override;
+
+    GRBVar& get_edge_var(vertex_t u, point_id_t pU, vertex_t v, point_id_t pV);
+    std::pair<GRBVar*, GRBVar*> get_best_triplet(vertex_t u, point_id_t pU, vertex_t v,
+                            point_id_t pV, vertex_t x, point_id_t pX);
 
   private:
     GRBEnv* m_env;
@@ -40,6 +50,9 @@ namespace gd
     GrbVariableMap m_vars;
     GRBVar* m_rawVariables; // just a pointer to delete afterwards
     GRBQuadExpr* m_objective;
+
+    List<GRBVar> m_edgeVars;
+    Map<TwoVertexPointPair, GRBVar*> m_edgeVarMap;
   };
 
 }

@@ -11,6 +11,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <utility>
+#include <iostream>
 
 #include <placement/divide/point_clustering.hpp>
 
@@ -46,6 +47,7 @@ const static size_t nbColors = sizeof(colors)/sizeof(colors[0]);
 
 void PlacementVisualizer::setupDrawing()
 {
+  std::cout << "Iteration " << m_iteration << std::endl;
   if (!m_initialized) initialize();
 
   m_svg << m_prepared;

@@ -1,12 +1,10 @@
 #include "local_gurobi.hpp"
+#include "gd_types.hpp"
+#include "placement/local/local_reopt.hpp"
 
 #include <common/misc.hpp>
 #include <io/printing.hpp>
 
-
-#include <gurobi_c.h>
-#include <gurobi_c++.h>
-#include <stdexcept>
 
 using namespace gd;
 
@@ -18,6 +16,8 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
 {
   m_functor = &functor;
   m_vars.clear();
+  m_edgeVars.clear();
+  m_edgeVarMap.clear();
 
   m_env = new GRBEnv();
   m_env->set(GRB_DoubleParam_TimeLimit, 10);
@@ -30,9 +30,6 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_model->set("NonConvex", "2.0");
 
   m_model->optimize();
-  /*m_model->write("out.mps");
-  m_model->write("out.lp");
-  m_model->write("out.mst");*/
   if (m_model->get(GRB_IntAttr_SolCount) > 0)
   {
     size_t idx = 0;
@@ -161,4 +158,67 @@ void LocalGurobi::create_single_crossings()
       *m_objective += num_crossings * (*m_vars[vertex_point_pair_t{u, pointU}]);
 
   });
+}
+
+void LocalGurobi::create_internal_crossings()
+{
+  enumerate_internal_crossings(
+    [&](vertex_t u, point_id_t pU, vertex_t v, point_id_t pV,
+        vertex_t x, point_id_t pX, vertex_t y, point_id_t pY) {
+
+      GRBVar& e1 = get_edge_var(u, pU, v, pV);
+      GRBVar& e2 = get_edge_var(x, pX, y, pY);
+      *m_objective += e1 * e2;
+  });
+}
+
+GRBVar& LocalGurobi::get_edge_var(vertex_t u, point_id_t pU,
+                                  vertex_t v, point_id_t pV)
+{
+  TwoVertexPointPair p { u, pU, v, pV };
+  GRBVar*& var = m_edgeVarMap[p];
+  if (var == nullptr)
+  {
+    auto it = m_edgeVars.emplace(m_edgeVars.begin(), m_model->addVar(0,1,0,GRB_BINARY));
+    var = &(*it);
+
+    // create constraints to enforce the relation between the edge and the atual vars
+    GRBVar pointvars[2] = {
+      *m_vars[vertex_point_pair_t{u, pU}],
+      *m_vars[vertex_point_pair_t{v, pV}]
+    };
+
+    m_model->addGenConstrAnd(*var, pointvars, 2);
+  }
+  return *var;
+}
+
+void LocalGurobi::create_semi_internal_crossings()
+{
+  enumerate_semi_internal_crossings(
+    [&](vertex_t u, point_id_t pU, vertex_t v, point_id_t pV,
+        vertex_t x, point_id_t pX) {
+
+      auto vars = get_best_triplet(u, pU, v, pV, x, pX);
+      *m_objective += *vars.first * *vars.second;
+  });
+}
+
+std::pair<GRBVar*, GRBVar*> LocalGurobi::get_best_triplet(
+    vertex_t u, point_id_t pU, vertex_t v,
+    point_id_t pV, vertex_t x, point_id_t pX)
+{
+  auto findIt = m_edgeVarMap.find(TwoVertexPointPair(u,pU,v,pV));
+  if (findIt != m_edgeVarMap.end())
+  { return std::make_pair(findIt->second, m_vars[vertex_point_pair_t{x, pX}]); }
+
+  findIt = m_edgeVarMap.find(TwoVertexPointPair(u,pU,x,pX));
+  if (findIt != m_edgeVarMap.end())
+  { return std::make_pair(findIt->second, m_vars[vertex_point_pair_t{v, pV}]); }
+
+  findIt = m_edgeVarMap.find(TwoVertexPointPair(v,pV,x,pX));
+  if (findIt != m_edgeVarMap.end())
+  { return std::make_pair(findIt->second, m_vars[vertex_point_pair_t{u, pU}]); }
+
+  return std::make_pair(&get_edge_var(u, pU, v, pV), m_vars[vertex_point_pair_t{x, pX}]);
 }

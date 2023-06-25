@@ -8,6 +8,7 @@
 #include <ostream>
 #include <utility>
 #include <vector>
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
 #include <map>
@@ -37,6 +38,9 @@ namespace gd
 
   template<typename T, typename Allocator = std::allocator<T>>
   using Vector = std::vector<T, Allocator>;
+
+  template<typename T, typename Allocator = std::allocator<T>>
+  using List = std::list<T, Allocator>;
 
   template<typename T, typename Compare = std::less<T>, typename Allocator = std::allocator<T>>
   using Set = std::set<T, Compare, Allocator>;

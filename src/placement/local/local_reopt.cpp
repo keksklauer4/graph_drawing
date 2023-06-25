@@ -40,3 +40,35 @@ void LocalImprovementFunctor::build_datastructures()
     m_pointIds.insert(m_pointIds.begin(), points.begin(), points.end());
   }
 }
+
+void LocalReOpt::build_datastructures()
+{
+  // build subgraph
+  const auto& pset = m_instance.m_points;
+  const auto& graph = m_instance.m_graph;
+
+  auto vertex_range = m_functor->get_vertex_range();
+  for (auto it1 = vertex_range.first; it1 != vertex_range.second; ++it1)
+  {
+    for (auto it2 = it1 + 1; it2 != vertex_range.second; ++it2)
+    {
+      if (*it1 != *it2 && graph.connected(*it1, *it2))
+      {
+        m_subgraph.insert(getOrderedPair(*it1, *it2));
+      }
+    }
+  }
+
+  // prepare existing edges
+  m_existing_edges.reserve(m_instance.m_graph.getNbEdges());
+  for (const auto& edge : m_instance.m_graph)
+  {
+    if (m_assignment.isAssigned(edge.first) && m_assignment.isAssigned(edge.second))
+    {
+      m_existing_edges.push_back(pointid_pair_t{
+        m_assignment.getAssigned(edge.first),
+        m_assignment.getAssigned(edge.second)
+      });
+    }
+  }
+}

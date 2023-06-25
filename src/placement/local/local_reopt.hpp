@@ -4,8 +4,11 @@
 #include <gd_types.hpp>
 #include <common/instance.hpp>
 #include <common/assignment.hpp>
-#include <ostream>
+
 #include <verification/verification_utils.hpp>
+#include <io/printing.hpp>
+
+#include <iostream>
 
 namespace gd
 {
@@ -72,12 +75,19 @@ namespace gd
   protected:
     void build_problem()
     {
+      build_datastructures();
+
       create_variables();
       create_vertex_mapped_csts();
       create_at_most_one_vertex_mapped_to_cst();
       create_pair_collinear_csts();
       create_collinear_triples_csts();
       create_pair_crossings();
+      create_semi_internal_crossings();
+      create_internal_crossings();
+
+      m_subgraph.clear();
+      m_existing_edges.clear();
     }
 
     virtual void create_variables() = 0;
@@ -88,11 +98,16 @@ namespace gd
     virtual void create_collinear_triples_csts() = 0;
     virtual void create_single_crossings() = 0;
     virtual void create_pair_crossings() = 0;
+    virtual void create_semi_internal_crossings() = 0;
+    virtual void create_internal_crossings() = 0;
+
+    void build_datastructures();
 
     template<typename Functor>
     void enumerate_pair_collinearities(Functor func) const
     {
       const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
       {
@@ -103,16 +118,31 @@ namespace gd
           line_2d_t line {};
           for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
           {
-            line.first = pset.getPoint(pointU->second).getCoordPair();
+            const auto& pU = pset.getPoint(pointU->second);
+            line.first = pU.getCoordPair();
             for (auto pointV = vRange.first; pointV != vRange.second; ++pointV)
             { // all "constant" time (if constant number of vertices and points to map to)
               if (pointU->second == pointV->second) continue;
-              line.second = pset.getPoint(pointV->second).getCoordPair();
+              const auto& pV = pset.getPoint(pointV->second);
+              line.second = pV.getCoordPair();
               for (vertex_t mappedVertex : m_assignment)
               {
-                if (gd::isOnLine(line, pset.getPoint(m_assignment.getAssigned(mappedVertex))))
+                const auto& p = pset.getPoint(m_assignment.getAssigned(mappedVertex));
+                if (gd::isOnLine(line, p))
                 {
                   func(*u, pointU->second, *v, pointV->second);
+                }
+                else if (graph.connected(*u, mappedVertex))
+                {
+                  line_2d_t helper = line;
+                  helper.second = p.getCoordPair();
+                  if (gd::isOnLine(helper, pV)) func(*u, pointU->second, *v, pointV->second);
+                }
+                else if (graph.connected(*v, mappedVertex))
+                {
+                  line_2d_t helper = line;
+                  helper.first = p.getCoordPair();
+                  if (gd::isOnLine(helper, pU)) func(*u, pointU->second, *v, pointV->second);
                 }
               }
             }
@@ -165,19 +195,6 @@ namespace gd
     template<typename Functor>
     void enumerate_single_crossings(Functor func) const
     {
-      Vector<pointid_pair_t> existing_edges{};
-      existing_edges.reserve(m_instance.m_graph.getNbEdges());
-      for (const auto& edge : m_instance.m_graph)
-      {
-        if (m_assignment.isAssigned(edge.first) && m_assignment.isAssigned(edge.second))
-        {
-          existing_edges.push_back(pointid_pair_t{
-            m_assignment.getAssigned(edge.first),
-            m_assignment.getAssigned(edge.second)
-          });
-        }
-      }
-
       const auto& pset = m_instance.m_points;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
@@ -192,7 +209,7 @@ namespace gd
           {
             if (!m_assignment.isAssigned(*neighbor)) continue;
             const auto& q1 = pset.getPoint(m_assignment.getAssigned(*neighbor));
-            for (const auto& edge : existing_edges)
+            for (const auto& edge : m_existing_edges)
             {
               if (gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second))) num_crossings++;
             }
@@ -205,19 +222,6 @@ namespace gd
     template<typename Functor>
     void enumerate_pair_crossings(Functor func) const
     {
-      Vector<pointid_pair_t> existing_edges{};
-      existing_edges.reserve(m_instance.m_graph.getNbEdges());
-      for (const auto& edge : m_instance.m_graph)
-      {
-        if (m_assignment.isAssigned(edge.first) && m_assignment.isAssigned(edge.second))
-        {
-          existing_edges.push_back(pointid_pair_t{
-            m_assignment.getAssigned(edge.first),
-            m_assignment.getAssigned(edge.second)
-          });
-        }
-      }
-
       const auto& pset = m_instance.m_points;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
@@ -234,7 +238,7 @@ namespace gd
             {
               const auto& q1 = pset.getPoint(pointV->second);
               size_t num_crossings = 0;
-              for (const auto& edge : existing_edges)
+              for (const auto& edge : m_existing_edges)
               {
                 if (gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second))) num_crossings++;
               }
@@ -246,10 +250,123 @@ namespace gd
       }
     }
 
+#define FOR_LOOP_POINTS(pIt, range, pointName, cond, block)        \
+  for (auto pIt = range.first; pIt != range.second; ++pIt)  \
+  {                                                         \
+    if (cond) continue;                                     \
+    const auto& pointName = pset.getPoint(pIt->second);     \
+    block                                                   \
+  }
+
+    template<typename Functor>
+    void enumerate_internal_crossings(Functor func) const
+    {
+      std::cout << "Enum Internal crossings\n";
+      const auto& pset = m_instance.m_points;
+      auto vertex_range = m_functor->get_vertex_range();
+
+
+      // awful code block follows. For each tuple of 4 distinct vertices
+      // on distinct points, check whether they cross and if so, add some weight
+      for (auto u = vertex_range.first; u != vertex_range.second; ++u)
+      {
+        auto u_point_range = m_functor->get_points(*u);
+        auto v_range = m_subgraph.equal_range(*u);
+        for (auto x = vertex_range.first; x != vertex_range.second; ++x)
+        {
+          if (u == x) continue;
+          auto x_point_range = m_functor->get_points(*x);
+          auto y_range = m_subgraph.equal_range(*x);
+          for (auto v = v_range.first; v != v_range.second; ++v)
+          {
+            if (v->second == *x) continue;
+            auto v_point_range = m_functor->get_points(v->second);
+            for (auto y = y_range.first; y != y_range.second; ++y)
+            {
+              if (y->second == v->second || y->second == *u) continue;
+
+              // now we have 4 distinct vertices with edges uv and xy
+              // now iterate over all valid points for each of those
+              auto y_point_range = m_functor->get_points(y->second);
+
+              FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
+                FOR_LOOP_POINTS(pV, v_point_range, pointV, pU->second == pV->second, {
+                  FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second && pX->second == pV->second, {
+                    FOR_LOOP_POINTS(pY, y_point_range, pointY,
+                            pY->second == pU->second && pY->second == pV->second && pY->second == pX->second, {
+
+                      if (gd::intersect(pointU, pointV, pointX, pointY))
+                      {
+                        func(*u, pointU.id, v->second, pointV.id,
+                            *x, pointX.id, y->second, pointY.id);
+                      }
+
+                    })
+
+                  })
+                })
+              })
+            }
+          }
+        }
+      }
+    }
+
+    template<typename Functor>
+    void enumerate_semi_internal_crossings(Functor func) const
+    {
+      std::cout << "Enum semi-nternal crossings\n";
+      const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
+      auto vertex_range = m_functor->get_vertex_range();
+
+      // awful code block follows. For each tuple of 3 distinct vertices
+      // on distinct points, check whether an edge of the third vertex to a neighbor
+      // crosses the uv edge
+      for (auto u = vertex_range.first; u != vertex_range.second; ++u)
+      {
+        auto u_point_range = m_functor->get_points(*u);
+        auto v_range = m_subgraph.equal_range(*u);
+        for (auto x = vertex_range.first; x != vertex_range.second; ++x)
+        {
+          if (u == x) continue;
+          auto x_point_range = m_functor->get_points(*x);
+          for (auto v = v_range.first; v != v_range.second; ++v)
+          {
+            if (v->second == *x) continue;
+            auto v_point_range = m_functor->get_points(v->second);
+
+            auto neighborRange = graph.getNeighborIterator(*x);
+            for (auto neighbor = neighborRange.first; neighbor != neighborRange.second; ++neighbor)
+            {
+              if (*neighbor == *u || *neighbor == v->second
+                  || !m_assignment.isAssigned(*neighbor)) continue;
+              const auto& neighborPoint = pset.getPoint(m_assignment.getAssigned(*neighbor));
+              FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {
+                FOR_LOOP_POINTS(pV, v_point_range, pointV, pU->second == pV->second, {
+                  FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second && pX->second == pV->second, {
+
+                      if (gd::intersect(pointU, pointV, pointX, neighborPoint))
+                      {
+                        func(*u, pointU.id, v->second, pointV.id,
+                             *x, pointX.id);
+                      }
+                  })
+                })
+              })
+            }
+          }
+        }
+      }
+    }
+#undef FOR_LOOP
+
   protected:
     const Instance& m_instance;
     const VertexAssignment& m_assignment;
 
+    MultiMap<vertex_t, vertex_t> m_subgraph;
+    Vector<pointid_pair_t> m_existing_edges;
 
     // Initialize in deriving class
     const LocalImprovementFunctor* m_functor;
@@ -257,6 +374,40 @@ namespace gd
 
   };
 
+
+  struct TwoVertexPointPair
+  {
+    TwoVertexPointPair(vertex_t uvertex, point_id_t upoint,
+                       vertex_t vvertex, point_id_t vpoint)
+    {
+      if (uvertex < vvertex) initialize(uvertex, upoint, vvertex, vpoint);
+      else initialize(vvertex, vpoint, uvertex, upoint);
+    }
+
+    void initialize(vertex_t uvertex, point_id_t upoint,
+                    vertex_t vvertex, point_id_t vpoint)
+    {
+      u = uvertex; pU = upoint;
+      v = vvertex; pV = vpoint;
+    }
+
+    friend bool operator<(const TwoVertexPointPair& p1, const TwoVertexPointPair& p2)
+    {
+      if (p1.u < p2.u) return true;
+      else if (p1.u > p2.u) return false;
+      if (p1.pU < p2.pU) return true;
+      else if (p1.pU > p2.pU) return false;
+      if (p1.v < p2.v) return true;
+      else if (p1.v > p2.v) return false;
+      if (p1.pV < p2.pV) return true;
+      return false;
+    }
+
+    vertex_t u;
+    point_id_t pU;
+    vertex_t v;
+    point_id_t pV;
+  };
 }
 
 #endif

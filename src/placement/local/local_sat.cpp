@@ -125,3 +125,13 @@ void LocalSAT::create_single_crossings()
   });
   m_clauseVec.clear();
 }
+
+void LocalSAT::create_internal_crossings()
+{
+  assert(false && "TODO: create_internal_crossings");
+}
+
+void LocalSAT::create_semi_internal_crossings()
+{
+  assert(false && "TODO: create_semi_internal_crossings");
+}

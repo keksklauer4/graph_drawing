@@ -1,4 +1,5 @@
 #include "graph.hpp"
+#include "gd_types.hpp"
 
 #include <algorithm>
 
@@ -17,7 +18,7 @@ Graph::Graph(Vector<vertex_pair_t>& edges)
   if (edges.empty()) return;
 
   std::sort(edges.begin(), edges.end(), PairLexicographicOrdering<vertex_t>());
-  auto largest_first = std::max_element(edges.begin(), edges.end(), 
+  auto largest_first = std::max_element(edges.begin(), edges.end(),
       [](const auto& e1, const auto& e2){
         return e1.first < e2.first;
   });
@@ -39,6 +40,18 @@ Graph::Graph(Vector<vertex_pair_t>& edges)
     std::swap(cumulated, vertex);
     cumulated += vertex;
   }
+
+  for (const auto& edge : *this)
+  {
+    if (edge.first <= edge.second) m_edgeSet.insert(edge);
+    else m_edgeSet.insert(reversePair(edge));
+  }
+}
+
+bool Graph::connected(vertex_t a, vertex_t b) const
+{
+  return a <= b ? m_edgeSet.contains(vertex_pair_t{a,b})
+                : m_edgeSet.contains(vertex_pair_t{b,a});
 }
 
 Graph::neighbor_iterator_t Graph::getNeighborIterator(vertex_t vertex) const

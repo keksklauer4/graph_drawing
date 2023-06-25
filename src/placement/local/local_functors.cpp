@@ -9,9 +9,9 @@
 
 using namespace gd;
 
-#define MAX_NUM_VERTICES 10
+#define MAX_NUM_VERTICES 6
 #define MIN_NUM_VERTICES 3
-#define MAX_NUM_POINTS 10
+#define MAX_NUM_POINTS 6
 
 
 LocalImprovementVertexNeighbors::LocalImprovementVertexNeighbors(
@@ -114,12 +114,6 @@ size_t gd::get_viable_neighbors(
     Set<point_id_t>& points_included, bool)
 {
   size_t num_options = 0;
-  /*if (wasAssigned)
-  {
-    num_options++;
-    options.insert(std::make_pair(v, center.id));
-    points_included.insert(center.id);
-  }*/
 
   kdtree.k_nearest_neighbors(center, MAX_NUM_POINTS,
     [&](point_id_t p) -> bool {
