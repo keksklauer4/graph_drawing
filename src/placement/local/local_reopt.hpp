@@ -80,8 +80,13 @@ namespace gd
       create_variables();
       create_vertex_mapped_csts();
       create_at_most_one_vertex_mapped_to_cst();
+
+      // collinearity
       create_pair_collinear_csts();
       create_collinear_triples_csts();
+
+      // crossings
+      create_single_crossings();
       create_pair_crossings();
       create_semi_internal_crossings();
       create_internal_crossings();
@@ -201,14 +206,15 @@ namespace gd
     void enumerate_single_crossings(Functor func) const
     {
       const auto& pset = m_instance.m_points;
+      const auto& graph = m_instance.m_graph;
       auto vertex_range = m_functor->get_vertex_range();
       for (auto u = vertex_range.first; u != vertex_range.second; ++u)
       {
         auto uRange = m_functor->get_points(*u);
+        auto neighbors = graph.getNeighborIterator(*u);
         for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
         {
           const auto& p1 = pset.getPoint(pointU->second);
-          auto neighbors = m_instance.m_graph.getNeighborIterator(*u);
           size_t num_crossings = 0;
           for (auto neighbor = neighbors.first; neighbor != neighbors.second; ++neighbor)
           {
@@ -216,7 +222,11 @@ namespace gd
             const auto& q1 = pset.getPoint(m_assignment.getAssigned(*neighbor));
             for (const auto& edge : m_existing_edges)
             {
-              if (gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second))) num_crossings++;
+              if (edge.first != q1.id && edge.second != q1.id &&
+                gd::intersect(p1, q1, pset.getPoint(edge.first), pset.getPoint(edge.second)))
+              {
+                num_crossings++;
+              }
             }
           }
           if (num_crossings != 0) func(*u, pointU->second, num_crossings);
@@ -243,6 +253,7 @@ namespace gd
             const auto& p1 = pset.getPoint(pointU->second);
             for (auto pointV = vRange.first; pointV != vRange.second; ++pointV)
             {
+              if (pointU->second == pointV->second) continue;
               const auto& q1 = pset.getPoint(pointV->second);
               size_t num_crossings = 0;
               for (const auto& edge : m_existing_edges)
@@ -268,7 +279,6 @@ namespace gd
     template<typename Functor>
     void enumerate_internal_crossings(Functor func) const
     {
-      std::cout << "Enum Internal crossings\n";
       const auto& pset = m_instance.m_points;
       auto vertex_range = m_functor->get_vertex_range();
 
@@ -305,7 +315,7 @@ namespace gd
                       if (gd::intersect(pointU, pointV, pointX, pointY))
                       {
                         func(*u, pointU.id, v->second, pointV.id,
-                            *x, pointX.id, y->second, pointY.id);
+                             *x, pointX.id, y->second, pointY.id);
                       }
 
                     })
@@ -322,7 +332,6 @@ namespace gd
     template<typename Functor>
     void enumerate_semi_internal_crossings(Functor func) const
     {
-      std::cout << "Enum semi-nternal crossings\n";
       const auto& pset = m_instance.m_points;
       const auto& graph = m_instance.m_graph;
       auto vertex_range = m_functor->get_vertex_range();
@@ -335,7 +344,7 @@ namespace gd
         auto u_point_range = m_functor->get_points(*u);
         auto v_range = m_subgraph.equal_range(*u);
         for (auto x = vertex_range.first; x != vertex_range.second; ++x)
-        {
+        { // TODO: correct range?
           if (u == x) continue;
           auto x_point_range = m_functor->get_points(*x);
           for (auto v = v_range.first; v != v_range.second; ++v)
@@ -383,9 +392,8 @@ namespace gd
       {
         auto u_point_range = m_functor->get_points(*u);
         auto neighborURange = graph.getNeighborIterator(*u);
-        for (auto x = vertex_range.first; x != vertex_range.second; ++x)
+        for (auto x = u + 1; x != vertex_range.second; ++x)
         {
-          if (u == x) continue;
           auto x_point_range = m_functor->get_points(*x);
 
           auto neighborXRange = graph.getNeighborIterator(*x);
@@ -400,7 +408,7 @@ namespace gd
                 const auto& uNeighborPoint = pset.getPoint(m_assignment.getAssigned(*neighborU));
                 for (auto neighborX = neighborXRange.first; neighborX != neighborXRange.second; ++neighborX)
                 {
-                  if (!m_assignment.isAssigned(*neighborX)) continue;
+                  if (*neighborU == *neighborX || !m_assignment.isAssigned(*neighborX)) continue;
                   if (gd::intersect(pointU, uNeighborPoint, pointX, pset.getPoint(m_assignment.getAssigned(*neighborX))))
                   {
                       num_crossings++;
@@ -409,7 +417,6 @@ namespace gd
               }
               if (num_crossings == 0) continue;
               func(*u, pointU.id, *x, pointX.id, num_crossings);
-
             })
           })
         }

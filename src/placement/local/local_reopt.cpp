@@ -63,7 +63,8 @@ void LocalReOpt::build_datastructures()
   m_existing_edges.reserve(m_instance.m_graph.getNbEdges());
   for (const auto& edge : m_instance.m_graph)
   {
-    if (m_assignment.isAssigned(edge.first) && m_assignment.isAssigned(edge.second))
+    if (edge.first < edge.second &&
+      m_assignment.isAssigned(edge.first) && m_assignment.isAssigned(edge.second))
     {
       m_existing_edges.push_back(pointid_pair_t{
         m_assignment.getAssigned(edge.first),

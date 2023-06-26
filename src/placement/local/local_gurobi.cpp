@@ -141,6 +141,7 @@ void LocalGurobi::create_collinear_triples_csts()
   });
 }
 
+
 void LocalGurobi::create_pair_crossings()
 {
   enumerate_pair_crossings(
@@ -162,7 +163,6 @@ void LocalGurobi::create_single_crossings()
     [&](vertex_t u, point_id_t pointU, size_t num_crossings){
 
       *m_objective += num_crossings * (*m_vars[vertex_point_pair_t{u, pointU}]);
-
   });
 }
 

@@ -9,9 +9,9 @@
 
 using namespace gd;
 
-#define MAX_NUM_VERTICES 6
+#define MAX_NUM_VERTICES 10
 #define MIN_NUM_VERTICES 3
-#define MAX_NUM_POINTS 6
+#define MAX_NUM_POINTS 9
 
 
 LocalImprovementVertexNeighbors::LocalImprovementVertexNeighbors(
