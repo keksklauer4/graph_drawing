@@ -3,6 +3,7 @@
 
 #include "common/instance.hpp"
 #include "common/misc.hpp"
+#include <cstddef>
 #include <gd_types.hpp>
 #include <memory>
 #include <ostream>
@@ -79,7 +80,7 @@ namespace gd
 
       vertex_range_iterator_t get_range() const
       { return std::make_pair(m_vertices.begin(), m_vertices.end()); }
-
+      
       friend std::ostream& operator<<(std::ostream& os, const HierarchicalGraph& g)
       {
         if (g.m_vertices.size() == 0) { os << "(0)"; return os; }
@@ -93,7 +94,28 @@ namespace gd
         }*/
         return os;
       }
-
+      int getNbPartitions(){
+        return m_partitions.size();
+      }
+      partitioning::Partition get_root_partition()
+      {
+        partitioning::Partition temp = m_partitions[0];
+        while(isDefined(temp.parent)){
+          temp = m_partitions[temp.parent];
+        }
+        return temp;
+      }
+      partitioning::Partition get_partition(int i)
+      {
+        return m_partitions[i];
+      }
+      Vector<vertex_t> get_partition_vertecies(size_t start, size_t end){
+        Vector<vertex_t> vertecies{};
+        for(int i = start; i < end; i++){
+          vertecies.push_back(m_vertices[i]);
+        }
+        return vertecies;
+      }
     private:
       const Graph& m_graph;
       Vector<vertex_t> m_vertices;

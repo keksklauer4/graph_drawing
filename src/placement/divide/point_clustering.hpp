@@ -36,6 +36,14 @@ namespace gd
         return os;
       }
 
+      Cluster get_Cluster(cluster_t c){
+        return m_clusters[c];
+      }
+
+      int getSize(){
+        return m_clusters.size();
+      }
+
     private:
       const Instance& m_instance;
       Vector<Cluster> m_clusters;

@@ -1,6 +1,7 @@
 #include "gd_types.hpp"
 #include "placement/greedy_placement.hpp"
 #include "verification/verifier.hpp"
+#include <algorithm>
 #include <iostream>
 #include <CLI/CLI.hpp>
 
@@ -17,6 +18,11 @@
 
 #include <placement/divide/graph_partitioning.hpp>
 #include <placement/divide/point_clustering.hpp>
+#include <utility>
+#include <vector>
+
+
+#include <placement/divide/tree_clustering.hpp>
 
 
 using namespace gd;
@@ -38,19 +44,108 @@ int main(int argc, const char** argv)
 
   CLI11_PARSE(app, argc, argv);
   instance_t instance = parseInstanceFromFile(file);
+
+  
   HierarchicalGraphBuilder hierarchyBuilder{instance};
   HierarchicalGraph hierarchy = hierarchyBuilder.partition();
-  std::cout << hierarchy << std::endl;
+
+  
+  std::cout << hierarchy.getNbPartitions() << std::endl;
+
+  partitioning::Partition root_partition = hierarchy.get_root_partition();
+  partitioning::Interval inter = root_partition.interval;
+  Queue<size_t> queue{};
+  queue.push(root_partition.left_child);
+  queue.push(root_partition.right_child);
+  while (!queue.empty()) {
+    size_t index = queue.front();
+    partitioning::Partition part = hierarchy.get_partition(index);
+    if(part.has_children()){
+      queue.push(part.left_child);
+      queue.push(part.right_child);
+    }else{
+      Vector<vertex_t> vertecies = hierarchy.get_partition_vertecies(part.interval.start, part.interval.end);
+      for(int i = 0; i < vertecies.size(); i++){
+        std::cout << vertecies[i] << " ";
+      }
+      std::cout << std::endl;
+    }
+    queue.pop();
+  }
+  /*
+  clustering::ClusterTree clusterTree(4, instance);
+  
   PointClustering points{instance};
   points.cluster();
-  std::cout << points << std::endl;
+  std::vector<std::vector<int>> clusters(points.getSize());
+  for(int j = 0; j < points.getSize(); j++){
+    clusters[j] = std::vector<int>{};
+  }
 
+  for(int k= 0; k < instance.m_points.getNumPoints(); k++){
+    int c = points.getCluster(k);
+    clusters[c].push_back(k);
+  }
+  for(int l = 0; l < clusters.size(); l++){
+    for(int m = 0; m < clusters[l].size(); m++){
+      std::cout << clusters[l][m] << " ";
+    }
+    std::cout << std::endl;
+  }
+  */
+  /*
+  std::vector<coordinate_2d_t> point_list(instance.m_points.getNumPoints());
+  for(int i = 0; i < instance.m_points.getNumPoints(); i++){
+    point_list[i] = instance.m_points.getPoint(i).getCoordPair();
+  }*/
+
+  //sort x1 < x2
+  //std::sort(point_list.begin(), point_list.end());
+  /*
+  for(int i = 0; i < point_list.size(); i++){
+    std::cout << point_list[i].first << ", " << point_list[i].second << " ";
+  }
+  std::cout << std::endl;
+  */
+  //sort y1 < y2
+  /*
+  std::sort(point_list.begin(), point_list.end(), [](auto &left, auto &right){
+    return !(left.second > right.second or (left.second == right.second and left.first > right.first));
+  });
+  */
+  /*
+  int num_points = point_list.size();
+  bool divisible_by_two = num_points % 2 == 0;
+  int half_range = 0;
+  if(divisible_by_two){
+    half_range = num_points / 2;
+  }else{
+    half_range = (num_points - 1) / 2;
+  }
+  std::vector<coordinate_2d_t> left_half(point_list.begin(), point_list.begin() + half_range);
+  for(int i = 0; i < left_half.size(); i++){
+    std::cout << left_half[i].first << ", " << left_half[i].second << ";   ";
+  }
+  std::cout << std::endl;
+  std::cout << "++++++++++++++++" << std::endl;
+  std::vector<coordinate_2d_t> right_half(point_list.begin() + half_range, point_list.begin() + num_points);
+  for(int i = 0; i < right_half.size(); i++){
+    std::cout << right_half[i].first << ", " << right_half[i].second << ";   ";
+  }
+  std::cout << std::endl;
+  */
+  /*
+  for(int i = 0; i < point_list.size(); i++){
+    std::cout << point_list[i].first << ", " << point_list[i].second << " ";
+  }
+  std::cout << std::endl;
+  */
   std::cout << "Done parsing file." << std::endl;
 
-  PartitioningVertexOrder order{ hierarchy.get_range() };
-  GreedyPlacement placement{instance, order};
-  const auto& assignment = placement.findPlacement();
-  placement.improve(improvement_iters);
+
+  //GreedyPlacement placement{instance, order};
+  //const auto& assignment = placement.findPlacement();
+  //placement.improve(improvement_iters);
 
   //std::vector<std::vector<vertex_t>> partitions = {{0, 1, 3, 4}, {2, 5}, {6, 7}, {8}};
   //std::vector<std::vector<point_id_t>> clusters = {{0, 1, 2, 3, 7, 8, 9, 10, 14, 15, 16, 17}, {21, 22, 23, 24, 28, 29, 30, 31}, {4, 5, 6, 11, 12, 13, 18,19, 20}, {25, 26, 27, 32, 33, 34}};
@@ -59,7 +154,7 @@ int main(int argc, const char** argv)
   //std::vector<int> p2c{0, 1, 2, 3};
   //std::vector<int> c2p{0, 1, 2, 3};
 
-
+  /*
   int width = 64;
   int height = 64;
   int num_points = width * height;
@@ -117,7 +212,7 @@ int main(int argc, const char** argv)
   }
   int max_iterations = 500;
   SATPlacement sat = SATPlacement(instance,partitions, clusters, n2p,po2c, p2c, c2p, max_iterations);
-
+  */
 
   /*
   std::unique_ptr<PlacementVisualizer> visualizer;
@@ -128,10 +223,12 @@ int main(int argc, const char** argv)
     visualizer->setClustering(points);
     visualizer->drawClustering();*/
 
+  /*
   Verifier verifier{instance, assignment};
   size_t num_crossings = 0;
   bool valid = verifier.verify(num_crossings);
   std::cout << "Verification result: " << (valid? "Valid" : "Invalid") << std::endl;
   if (valid) std::cout << "Number of crossings " << num_crossings << std::endl;
+  */
   return 0;
 }
