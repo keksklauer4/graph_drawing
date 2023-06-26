@@ -42,6 +42,8 @@ namespace gd
       }
     }
 
+    virtual bool has_start() const { return false; }
+
     void set_mapped(size_t idx, point_id_t p) { m_previousMapping[idx] = p; }
 
   protected:

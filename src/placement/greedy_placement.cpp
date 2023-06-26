@@ -54,10 +54,12 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
   RandomGen random{};
   ShortTermVertexSet tried{};
-  LocalImprovementVertexNeighbors improvementFunctor{m_instance, m_assignment};
-  LocalGurobi gurobi{m_instance, m_assignment};
   KdTree kdtree {m_instance.m_points};
+  LocalImprovementBomb improvementFunctor{m_instance,
+              m_assignment, kdtree, m_incrementalCollinearity};
+  LocalGurobi optimizer{m_instance, m_assignment};
 
+  size_t num_placed = 0;
   while (isDefined((vertex = m_order.getNext())))
   {
     point_id_t target = findEligiblePoint(vertex);
@@ -73,65 +75,70 @@ const VertexAssignment& GreedyPlacement::findPlacement()
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
     }
+    std::cout << "#placed: " << ++num_placed << std::endl;
 
-    for (int i = 0; i < 5; ++i)
+    if (m_incrementalCrossing.getTotalNumCrossings() == 0) continue;
+    for (int i = 0; i < 20; ++i)
     {
-      // size_t before = m_incrementalCrossing.getTotalNumCrossings();
-      // std::cout << "Before " << before << std::endl;
+      size_t before = m_incrementalCrossing.getTotalNumCrossings();
       vertex_t v = random.getRandom(embedded);
-      // if (tried.contains(v)) continue;
-      // tryImprove(v);
-
-      improvementFunctor.reset();
-      improvementFunctor.initialize(v, m_assignment.getAssigned(v));
-      if (!improvementFunctor.is_valid()) continue;
-      auto wRange = improvementFunctor.get_vertex_range();
-      for (auto w = wRange.first; w != wRange.second; ++w)
-      {
-        if (!m_assignment.isAssigned(*w)) continue;
-        m_incrementalCollinearity.deplace(*w);
-        m_incrementalCrossing.deplace(*w, m_assignment.getAssigned(*w));
-        m_assignment.unassign(*w);
-      }
-      improvementFunctor.set_points(kdtree, m_incrementalCollinearity);
-      if (!improvementFunctor.is_valid())
-      {
-        improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
-          assert(isDefined(p) && "Point is undefined!");
-          m_incrementalCollinearity.place(v, p);
-          m_incrementalCrossing.place(v, p);
-          m_assignment.assign(v, p);
-        });
-      }
-
-      /*improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
-        std::cout << "Mapping was "<< v<< " -> " << p << std::endl;
-      });
-      m_visualizer->draw([&](std::ostream& stream){
-        stream << "Prep for gurobi [total: "
-          << m_incrementalCrossing.getTotalNumCrossings() << "]";
-      });*/
-      // size_t now = m_incrementalCrossing.getTotalNumCrossings();
-      // std::cout << "====> Expecting " << (before-now) << " as mip start " << std::endl;
-      gurobi.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&improvementFunctor));
-      improvementFunctor.get_mapping([&](vertex_t v, point_id_t p){
-        assert(isDefined(p) && "Point is undefined!");
-        assert(m_incrementalCollinearity.isValidCandidate(v, p) && "Point is actually invalid!");
-        m_incrementalCollinearity.place(v, p);
-        m_incrementalCrossing.place(v, p);
-        m_assignment.assign(v, p);
-      });
-
-      m_visualizer->draw([&](std::ostream& stream){
-        stream << "Gurobi local opt [total: "
-          << m_incrementalCrossing.getTotalNumCrossings() << "]";
-      });
-      // std::cout << "End " << m_incrementalCrossing.getTotalNumCrossings() << std::endl;
+      if (tried.contains(v)) continue;
+      tryImprove(v);
     }
+    vertex_t v = random.getRandom(embedded);
+    improve_locally(optimizer, improvementFunctor,
+      v, m_assignment.getAssigned(v));
     tried.clear();
+
+    std::cout << "Num crossings: " << m_incrementalCrossing.getTotalNumCrossings() << std::endl;
   }
 
   return m_assignment;
+}
+
+void GreedyPlacement::improve_locally(
+    LocalGurobi& optimizer, LocalImprovementNN& functor,
+    vertex_t vertex, point_id_t point)
+{
+  functor.reset();
+  std::cout << "init\n";
+  functor.initialize(vertex, point);
+  std::cout << "done init\n";
+  if (!functor.is_valid()) return;
+  auto wRange = functor.get_vertex_range();
+  for (auto w = wRange.first; w != wRange.second; ++w)
+  {
+    if (!m_assignment.isAssigned(*w)) continue;
+    m_incrementalCollinearity.deplace(*w);
+    m_incrementalCrossing.deplace(*w, m_assignment.getAssigned(*w));
+    m_assignment.unassign(*w);
+  }
+  std::cout << "setting points\n";
+  functor.set_points();
+  if (!functor.is_valid())
+  {
+  std::cout << "invalid\n";
+    functor.get_mapping([&](vertex_t v, point_id_t p){
+      assert(isDefined(p) && "Point is undefined!");
+      m_incrementalCollinearity.place(v, p);
+      m_incrementalCrossing.place(v, p);
+      m_assignment.assign(v, p);
+    });
+  }
+  std::cout << "Optimizing\n";
+  optimizer.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&functor));
+  functor.get_mapping([&](vertex_t v, point_id_t p){
+    assert(isDefined(p) && "Point is undefined!");
+    assert(m_incrementalCollinearity.isValidCandidate(v, p) && "Point is actually invalid!");
+    m_incrementalCollinearity.place(v, p);
+    m_incrementalCrossing.place(v, p);
+    m_assignment.assign(v, p);
+  });
+
+  m_visualizer->draw([&](std::ostream& stream){
+    stream << "Gurobi local opt [total: "
+           << m_incrementalCrossing.getTotalNumCrossings() << "]";
+  });
 }
 
 size_t GreedyPlacement::placeInitial(vertex_t vertex, point_id_t target)
@@ -152,15 +159,21 @@ point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
   double distance = DOUBLE_MAX;
   for (point_id_t pointid : m_unused)
   {
-    if (!m_assignment.isPointUsed(pointid) && m_incrementalCollinearity.isValidCandidate(vertex, pointid))
+    if (!m_assignment.isPointUsed(pointid))
     {
-      size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, pointid);
-      if (crossings < quality.first || (crossings == quality.first &&
-        (distance = squared_neighbor_distance_metric(m_instance, m_assignment, vertex, pointid)) < quality.second))
+      if (quality.first == 0
+      && (distance = squared_neighbor_distance_metric(m_instance, m_assignment, vertex, pointid))
+          >= quality.second) continue;
+
+      if (m_incrementalCollinearity.isValidCandidate(vertex, pointid))
       {
-        quality.first = crossings;
-        quality.second = distance;
-        best = pointid;
+        size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, pointid);
+        if (crossings < quality.first || (crossings == quality.first && distance < quality.second))
+        {
+          quality.first = crossings;
+          quality.second = distance;
+          best = pointid;
+        }
       }
     }
   }
@@ -177,7 +190,6 @@ constexpr float DESTRUC_P = 0.1;
 bool GreedyPlacement::improve(size_t num_tries)
 {
   ShortTermVertexSet tried{};
-  bool improved = false;
   RandomGen random{};
 
   KdTree kdtree {m_instance.m_points};
@@ -185,29 +197,26 @@ bool GreedyPlacement::improve(size_t num_tries)
 
   ProbabilisticDecision choice{};
 
+  std::cout << "Improving"<<std::endl;
+  LocalImprovementBomb improvementFunctor{m_instance,
+              m_assignment, kdtree, m_incrementalCollinearity};
+  LocalGurobi optimizer{m_instance, m_assignment};
+
   for (size_t i = 0; i < num_tries; ++i)
   {
     vertex_t candidate = VERTEX_UNDEF;
-    /*size_t num_crossings = 0;
-
-    for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)
-    {
-      if (m_incrementalCrossing.getNumCrossings(v) > num_crossings && !tried.contains(v))
-      {
-        candidate = v;
-        num_crossings = m_incrementalCrossing.getNumCrossings(v);
-      }
-    }*/
     candidate = random.getRandomUint(m_instance.m_graph.getNbVertices());
     if (tried.contains(candidate)) continue;
-
     tried.insert(candidate);
-    bool success;
-    if (!choice(DESTRUC_P)) success = tryImprove(candidate);
-    else success = circularRebuild(kdtree, temp, candidate);
-    improved |= success;
+  std::cout << "Improving" << candidate <<std::endl;
+    improve_locally(optimizer, improvementFunctor,
+      candidate, m_assignment.getAssigned(candidate));
+
+    //if (!choice(DESTRUC_P)) success = tryImprove(candidate);
+    // else success = circularRebuild(kdtree, temp, candidate);
+    // improved |= success;
   }
-  return improved;
+  return true;
 }
 
 bool GreedyPlacement::tryImprove(vertex_t vertex)
@@ -244,7 +253,7 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
     m_incrementalCrossing.place(vertex, best);
     m_assignment.assign(vertex, best);
 
-    if (m_visualizer != nullptr)
+    /*if (m_visualizer != nullptr)
     {
       m_visualizer->draw([&](std::ostream& s){
         s << "Moving vertex " << vertex << " from point "
@@ -253,7 +262,7 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
           << num_crossings << " crossings). [total: "
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
-    }
+    }*/
   }
 
   return success;

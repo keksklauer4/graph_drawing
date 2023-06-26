@@ -26,6 +26,10 @@ namespace gd
       bool tryImprove(vertex_t candidate);
       bool circularRebuild(const KdTree& kdtree, Vector<VertexPointPair>& destructed, vertex_t candidate);
 
+      void improve_locally(LocalGurobi& optimizer, LocalImprovementNN& functor,
+                           vertex_t v, point_id_t p);
+
+
     private:
       const Instance& m_instance;
       VertexOrder& m_order;

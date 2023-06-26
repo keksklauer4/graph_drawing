@@ -22,6 +22,7 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
 
   m_env = new GRBEnv();
   m_env->set(GRB_DoubleParam_TimeLimit, 10);
+  //m_env->set("OutputFlag", 0);
   m_model = new GRBModel(*m_env);
   m_model->set(GRB_IntParam_Threads, 1);
   m_model->set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
@@ -29,11 +30,6 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   build_problem();
   m_model->setObjective(*m_objective);
   m_model->set("NonConvex", "2.0");
-
-  m_model->write("out.lp");
-  m_model->write("out.mps");
-  m_model->write("out.mst");
-  m_model->write("out.rew");
 
   m_model->optimize();
   if (m_model->get(GRB_IntAttr_SolCount) > 0)

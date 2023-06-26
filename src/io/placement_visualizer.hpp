@@ -31,10 +31,10 @@ namespace gd
       double getWidth() const { return m_width; }
       double getHeight() const { return m_height; }
 
-      double getNodeSize() const { return 50; }
+      double getNodeSize() const { return 5; }
       double getRadius() const { return getNodeSize() / 2; }
       double getPointRadius() const { return getRadius() * 0.5; }
-      double getStrokeWidth() const { return 6; }
+      double getStrokeWidth() const { return 0.6; }
 
       void initialize();
       void writeToFile();
@@ -48,6 +48,8 @@ namespace gd
       Point translatePoint(const Point& p) const;
       void calculateGCDScaling();
       void drawClusteredNodes();
+
+      double minDistance() const;
 
     public:
       void draw(const char* title = nullptr);

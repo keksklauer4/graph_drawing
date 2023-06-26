@@ -169,6 +169,8 @@ namespace gd
   class PointClustering;
   class HierarchicalGraph;
   class IncrementalCollinear;
+  struct LocalImprovementNN;
+  class LocalGurobi;
 }
 
 

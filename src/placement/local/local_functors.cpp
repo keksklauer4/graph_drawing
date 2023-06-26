@@ -1,4 +1,5 @@
 #include "local_functors.hpp"
+#include "common/misc.hpp"
 #include "gd_types.hpp"
 
 #include <common/instance.hpp>
@@ -11,12 +12,70 @@ using namespace gd;
 
 #define MAX_NUM_VERTICES 10
 #define MIN_NUM_VERTICES 3
-#define MAX_NUM_POINTS 9
+#define MAX_NUM_POINTS 8
 
+void LocalImprovementNN::set_points()
+{
+  const auto& pset = m_instance.m_points;
+  for(size_t idx = 0; idx < m_vertices.size(); ++idx)
+  {
+    size_t num_found;
+    m_temp_points.clear();
+    if (m_vertices[idx] != m_chosen)
+    {
+      num_found = gd::get_viable_neighbors(
+        m_assignment, m_kdtree, m_collinear,
+        m_vertexToPoint, m_vertices[idx],
+        pset.getPoint(m_previousMapping[idx]),
+        m_temp_points
+      );
+    }
+    else
+    {
+      num_found = gd::get_viable_neighbors(
+        m_assignment, m_kdtree, m_collinear,
+        m_vertexToPoint, m_chosen,
+        pset.getPoint(m_center),
+        m_temp_points
+      );
+    }
 
-LocalImprovementVertexNeighbors::LocalImprovementVertexNeighbors(
-    const Instance& instance, const VertexAssignment& assignment)
-  : m_instance(instance), m_assignment(assignment) { }
+    if (num_found == 0)
+    {
+      m_valid = false;
+      return;
+    }
+
+    /*for (point_id_t p : m_previousMapping)
+    {
+      if (isDefined(p) && !m_temp_points.contains(p)
+          && !m_assignment.isPointUsed(p)
+          && !m_collinear.isPointInvalid(p)
+          && m_collinear.isValidCandidate(m_vertices[idx], p))
+      {
+        m_vertexToPoint.insert(std::make_pair(m_vertices[idx], p));
+      }
+    }*/
+  }
+  m_valid = true;
+  build_datastructures();
+}
+
+void LocalImprovementNN::reset()
+{
+  reset_base();
+  m_chosen = UINT_UNDEF;
+  m_center = UINT_UNDEF;
+  m_start = false;
+}
+
+void LocalImprovementNN::all_assigned()
+{
+  bool start = true;
+  for (vertex_t v : m_vertices) start &= m_assignment.isAssigned(v);
+  m_start = start;
+}
+
 
 void LocalImprovementVertexNeighbors::initialize(vertex_t vertex, point_id_t point)
 {
@@ -57,61 +116,49 @@ void LocalImprovementVertexNeighbors::initialize(vertex_t vertex, point_id_t poi
   m_valid = true;
   m_chosen = vertex;
   m_center = point;
-  m_wasAssignedToCenter = m_assignment.isAssigned(vertex)
-                       && m_assignment.getAssigned(vertex) == point;
+
+  all_assigned();
 }
 
-void LocalImprovementVertexNeighbors::set_points(
-  const KdTree& kdtree, IncrementalCollinear& collinear)
+
+void LocalImprovementBomb::initialize(vertex_t vertex, point_id_t point)
 {
   const auto& pset = m_instance.m_points;
-  Set<point_id_t> points_included{};
-  for(size_t idx = 0; idx < m_vertices.size(); ++idx)
+
+  VertexSet included{};
+  m_kdtree.k_nearest_neighbors(pset.getPoint(point), MAX_NUM_POINTS,
+    [&](point_id_t p) -> bool {
+      if(!included.contains(p) && m_assignment.isPointUsed(p))
+      {
+        m_vertices.push_back(m_assignment.getAssignedVertex(p));
+        included.insert(p);
+        return true;
+      }
+      return false;
+  });
+  if (m_vertices.size() < MIN_NUM_VERTICES)
   {
-    size_t num_found;
-    points_included.clear();
-    if (m_vertices[idx] != m_chosen)
-    {
-      num_found = gd::get_viable_neighbors(
-        m_assignment, kdtree, collinear,
-        m_vertexToPoint, m_vertices[idx],
-        pset.getPoint(m_previousMapping[idx]),
-        points_included, true
-      );
-    }
-    else
-    {
-      num_found = gd::get_viable_neighbors(
-        m_assignment, kdtree, collinear,
-        m_vertexToPoint, m_chosen,
-        pset.getPoint(m_center),
-        points_included, m_wasAssignedToCenter
-      );
-    }
-
-    if (num_found == 0)
-    {
-      m_valid = false;
-      return;
-    }
+    m_valid = false;
+    return;
   }
+
+
+  record_previous_mapping(m_assignment);
+
   m_valid = true;
-  build_datastructures();
+  m_chosen = vertex;
+  m_center = point;
+
+  all_assigned();
 }
 
-void LocalImprovementVertexNeighbors::reset()
-{
-  reset_base();
-  m_chosen = UINT_UNDEF;
-  m_center = UINT_UNDEF;
-}
 
 size_t gd::get_viable_neighbors(
     const VertexAssignment& assignment, const KdTree& kdtree,
     IncrementalCollinear& collinear,
     MultiMap<vertex_t, point_id_t>& options,
     vertex_t v, const Point& center,
-    Set<point_id_t>& points_included, bool)
+    Set<point_id_t>& points_included)
 {
   size_t num_options = 0;
 

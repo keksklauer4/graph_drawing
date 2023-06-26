@@ -1,4 +1,6 @@
 #include "placement_visualizer.hpp"
+#include "gd_types.hpp"
+#include "placement/placement_metrics.hpp"
 
 #include <common/misc.hpp>
 #include <common/assignment.hpp>
@@ -8,6 +10,7 @@
 #include <fstream>
 #include <filesystem>
 
+#include <math.h>
 #include <numeric>
 #include <stdexcept>
 #include <utility>
@@ -128,8 +131,10 @@ void PlacementVisualizer::initialize()
   }
 
   calculateGCDScaling();
+  double min_dist = 1;//minDistance();
 
-  m_scaling = getRadius() * 4;
+  std::cout << "Min dist " << min_dist << std::endl;
+  m_scaling = getRadius() * 4 / min_dist;
   m_width = ((x_range.second - x_range.first) / m_gcdScaling + 2) * m_scaling;
   higherTo(m_width, 1000ul);
   m_height = ((y_range.second - y_range.first) / m_gcdScaling + 2) * m_scaling;
@@ -159,6 +164,22 @@ void PlacementVisualizer::initialize()
   m_svg.str(std::string());
 
   m_initialized = true;
+}
+
+double PlacementVisualizer::minDistance() const
+{
+  double min_dist = DOUBLE_MAX;
+  const auto& pset = m_instance.m_points;
+  size_t num_points = pset.getNumPoints();
+  for (point_id_t p1 = 0; p1 < num_points; ++p1)
+  {
+    for (point_id_t p2 = p1 + 1; p2 < num_points; ++p2)
+    {
+      lowerTo(min_dist, squared_distance(pset.getPoint(p1), pset.getPoint(p2)));
+    }
+  }
+
+  return sqrt(min_dist);
 }
 
 void PlacementVisualizer::calculateGCDScaling()

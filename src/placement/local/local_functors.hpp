@@ -7,24 +7,60 @@
 namespace gd
 {
 
-  // choose a (not necessarily mapped) vertex
-  struct LocalImprovementVertexNeighbors : public LocalImprovementFunctor
+  struct LocalImprovementNN : public LocalImprovementFunctor
   {
   public:
-    LocalImprovementVertexNeighbors(
-        const Instance& instance, const VertexAssignment& assignment);
+    LocalImprovementNN(const Instance& instance, const VertexAssignment& assignment,
+                      const KdTree& kdtree, IncrementalCollinear& collinear)
+      : m_instance(instance), m_assignment(assignment),
+        m_kdtree(kdtree), m_collinear(collinear),
+        m_chosen(UINT_UNDEF), m_center(UINT_UNDEF) {}
 
-    void initialize(vertex_t vertex, point_id_t point);
-    void set_points(const KdTree& kdtree, IncrementalCollinear& collinear);
+    virtual void initialize(vertex_t vertex, point_id_t point) = 0;
+
+    void set_points();
+    bool has_start() const override { return m_start; }
     void reset();
 
-  private:
+  protected:
+    void all_assigned();
+
+  protected:
     const Instance& m_instance;
     const VertexAssignment& m_assignment;
+    const KdTree& m_kdtree;
+    IncrementalCollinear& m_collinear;
+
+    Set<point_id_t> m_temp_points;
 
     vertex_t m_chosen;
     point_id_t m_center;
-    bool m_wasAssignedToCenter = false;
+    bool m_start = false;
+  };
+
+  // choose a (not necessarily mapped) vertex
+  struct LocalImprovementVertexNeighbors : public LocalImprovementNN
+  {
+  public:
+    LocalImprovementVertexNeighbors(
+        const Instance& instance, const VertexAssignment& assignment,
+        const KdTree& kdtree, IncrementalCollinear& collinear)
+      : LocalImprovementNN(instance, assignment, kdtree, collinear) {}
+
+    void initialize(vertex_t vertex, point_id_t point);
+
+  };
+
+  struct LocalImprovementBomb : public LocalImprovementNN
+  {
+  public:
+    LocalImprovementBomb(
+        const Instance& instance, const VertexAssignment& assignment,
+        const KdTree& kdtree, IncrementalCollinear& collinear)
+      : LocalImprovementNN(instance, assignment, kdtree, collinear) {}
+
+    void initialize(vertex_t vertex, point_id_t point);
+
   };
 
 
@@ -33,7 +69,7 @@ namespace gd
     IncrementalCollinear& collinear,
     MultiMap<vertex_t, point_id_t>& options,
     vertex_t v, const Point& center,
-    Set<point_id_t>& points_included, bool wasAssigned
+    Set<point_id_t>& points_included
   );
 }
 
