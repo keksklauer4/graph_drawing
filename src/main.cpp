@@ -1,5 +1,6 @@
 #include "gd_types.hpp"
 #include "placement/greedy_placement.hpp"
+#include "placement/vertex_order.hpp"
 #include "verification/verifier.hpp"
 #include <iostream>
 #include <CLI/CLI.hpp>
@@ -53,7 +54,8 @@ int main(int argc, const char** argv)
     visualizer = std::make_unique<PlacementVisualizer>(instance, visualization_file_prefix);
   }
 
-  PartitioningVertexOrder order{ hierarchy.get_range() };
+  MaxEmbeddedVertexOrder order{instance};
+  // PartitioningVertexOrder order{ hierarchy.get_range() };
   GreedyPlacement placement{ instance, order, visualizer.get() };
   const auto& assignment = placement.findPlacement();
   placement.improve(improvement_iters);

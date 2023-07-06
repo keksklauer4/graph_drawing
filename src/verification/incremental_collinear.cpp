@@ -32,6 +32,7 @@ bool IncrementalCollinear::findCollinear(const point_pair_t& line, bool fix_edge
 bool IncrementalCollinear::isValidCandidate(vertex_t vertex, point_id_t p)
 {
   if (isPointInvalid(p)) return false;
+  m_instance.m_timer.timer_collinear();
   point_pair_t line;
   line.first = m_instance.m_points.getPoint(p);
   auto neighborRange = m_instance.m_graph.getNeighborIterator(vertex);
@@ -40,15 +41,22 @@ bool IncrementalCollinear::isValidCandidate(vertex_t vertex, point_id_t p)
     if (m_assignment.isAssigned(*neighbor))
     {
       line.second = m_instance.m_points.getPoint(m_assignment.getAssigned(*neighbor));
-      if (findCollinear(line)) return false;
+      if (findCollinear(line))
+      {
+        m_instance.m_timer.timer_collinear();
+        return false;
+      }
     }
   }
+
+  m_instance.m_timer.timer_collinear();
   return true;
 }
 
 
 void IncrementalCollinear::place(vertex_t vertex, point_id_t point)
 {
+  m_instance.m_timer.timer_collinear();
   point_pair_t line;
   line.first = m_instance.m_points.getPoint(point);
   auto neighborRange = m_instance.m_graph.getNeighborIterator(vertex);
@@ -60,10 +68,12 @@ void IncrementalCollinear::place(vertex_t vertex, point_id_t point)
       findCollinear(line, true);
     }
   }
+  m_instance.m_timer.timer_collinear();
 }
 
 void IncrementalCollinear::deplace(vertex_t vertex)
 {
+  m_instance.m_timer.timer_collinear();
   point_id_t p1 = m_assignment.getAssigned(vertex);
   auto neighborRange = m_instance.m_graph.getNeighborIterator(vertex);
   for (auto neighbor = neighborRange.first; neighbor != neighborRange.second; ++neighbor)
@@ -77,4 +87,5 @@ void IncrementalCollinear::deplace(vertex_t vertex)
     }
     m_invalidities.erase(invalidRange.first, invalidRange.second);
   }
+  m_instance.m_timer.timer_collinear();
 }

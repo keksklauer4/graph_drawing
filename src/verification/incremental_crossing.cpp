@@ -21,6 +21,7 @@ IncrementalCrossing::IncrementalCrossing(const Instance& instance,
 
 size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bool fix, int delta)
 {
+  m_instance.m_timer.timer_crossing();
   const auto& graph = m_instance.m_graph;
   const auto& pset = m_instance.m_points;
   const Point& targetPoint = pset.getPoint(point);
@@ -57,7 +58,7 @@ size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bo
       }
     }
   }
-
+  m_instance.m_timer.timer_crossing();
   return num_crossings;
 }
 

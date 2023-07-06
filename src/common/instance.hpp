@@ -3,6 +3,7 @@
 
 #include <common/graph.hpp>
 #include <common/pointset.hpp>
+#include <common/time_tracker.hpp>
 
 namespace gd
 {
@@ -14,6 +15,7 @@ namespace gd
 
     Graph m_graph;
     PointSet m_points;
+    TimeTracker m_timer;
   } instance_t;
 
 

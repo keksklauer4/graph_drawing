@@ -12,7 +12,7 @@ using namespace gd;
 
 #define MAX_NUM_VERTICES 10
 #define MIN_NUM_VERTICES 3
-#define MAX_NUM_POINTS 8
+#define MAX_NUM_POINTS 9
 
 void LocalImprovementNN::set_points()
 {

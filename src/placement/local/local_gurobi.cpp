@@ -15,6 +15,7 @@ LocalGurobi::~LocalGurobi()
 
 void LocalGurobi::optimize(LocalImprovementFunctor& functor)
 {
+  m_instance.m_timer.timer_gurobi_model();
   m_functor = &functor;
   m_vars.clear();
   m_edgeVars.clear();
@@ -30,8 +31,11 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   build_problem();
   m_model->setObjective(*m_objective);
   m_model->set("NonConvex", "2.0");
+  m_instance.m_timer.timer_gurobi_model();
 
+  m_instance.m_timer.timer_gurobi();
   m_model->optimize();
+  m_instance.m_timer.timer_gurobi();
   if (m_model->get(GRB_IntAttr_SolCount) > 0)
   {
     size_t idx = 0;
