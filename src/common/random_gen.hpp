@@ -23,6 +23,12 @@ namespace gd
         return vec.at(getRandomUint(vec.size()));
       }
 
+      template<typename T>
+      void shuffle(Vector<T>& vec)
+      {
+        std::shuffle(vec.begin(), vec.end(), m_generator);
+      }
+
 
     private:
       std::random_device m_rdGen;

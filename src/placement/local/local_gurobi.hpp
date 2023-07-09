@@ -24,7 +24,7 @@ namespace gd
       : LocalReOpt(instance, assignment) {}
     ~LocalGurobi();
 
-    void optimize(LocalImprovementFunctor& functor) override;
+    bool optimize(LocalImprovementFunctor& functor) override;
 
 
   private:

@@ -13,7 +13,7 @@ LocalGurobi::~LocalGurobi()
 {
 }
 
-void LocalGurobi::optimize(LocalImprovementFunctor& functor)
+bool LocalGurobi::optimize(LocalImprovementFunctor& functor)
 {
   m_instance.m_timer.timer_gurobi_model();
   m_functor = &functor;
@@ -36,7 +36,8 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_instance.m_timer.timer_gurobi();
   m_model->optimize();
   m_instance.m_timer.timer_gurobi();
-  if (m_model->get(GRB_IntAttr_SolCount) > 0)
+  bool found_solution = m_model->get(GRB_IntAttr_SolCount) > 0;
+  if (found_solution)
   {
     size_t idx = 0;
     auto vertexRange = m_functor->get_vertex_range();
@@ -46,7 +47,11 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
       for (auto p = pointRange.first; p != pointRange.second; ++p)
       {
         double val = m_vars[std::make_pair(*v, p->second)]->get(GRB_DoubleAttr_X);
-        if (val > 0.99) functor.set_mapped(idx++, p->second);
+        if (val > 0.99)
+        {
+          functor.set_mapped(idx++, p->second);
+          break;
+        }
       }
     }
   }
@@ -55,6 +60,7 @@ void LocalGurobi::optimize(LocalImprovementFunctor& functor)
   delete m_objective;
   delete m_model;
   delete m_env;
+  return found_solution;
 }
 
 void LocalGurobi::create_variables()
@@ -70,11 +76,15 @@ void LocalGurobi::create_variables()
       m_vars.insert(std::make_pair(vertex_point_pair_t{*v, p->second}, nextVar++));
     }
   }
-  m_functor->get_mapping([&](vertex_t v, point_id_t p){
-    if (!isDefined(p) || !m_vars.contains(vertex_point_pair_t{v,p})) return;
 
-    m_vars[vertex_point_pair_t{v,p}]->set(GRB_DoubleAttr_Start, 1.0);
-  });
+  if (m_functor->has_start())
+  {
+    m_functor->get_mapping([&](vertex_t v, point_id_t p){
+      if (!isDefined(p) || !m_vars.contains(vertex_point_pair_t{v,p})) return;
+
+      m_vars[vertex_point_pair_t{v,p}]->set(GRB_DoubleAttr_Start, 1.0);
+    });
+  }
 }
 
 void LocalGurobi::create_vertex_mapped_csts()
@@ -189,10 +199,14 @@ GRBVar& LocalGurobi::get_edge_var(vertex_t u, point_id_t pU,
     var = &(*it);
 
     // create constraints to enforce the relation between the edge and the atual vars
+    std::cout << "u " << u << " pu " << pU << std::endl << "v " << v << " pV " << pV << std::endl;
+    std::cout << m_vars.contains(vertex_point_pair_t{u, pU}) << " "
+      << m_vars.contains(vertex_point_pair_t{v, pV}) << std::endl;
     GRBVar pointvars[2] = {
       *m_vars[vertex_point_pair_t{u, pU}],
       *m_vars[vertex_point_pair_t{v, pV}]
     };
+    std::cout << "D" << std::endl;
 
     m_model->addGenConstrAnd(*var, pointvars, 2);
   }

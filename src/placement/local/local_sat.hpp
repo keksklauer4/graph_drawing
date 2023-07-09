@@ -17,7 +17,7 @@ namespace gd
     LocalSAT(const Instance& instance, const VertexAssignment& assignment)
       : LocalReOpt(instance, assignment) {}
     ~LocalSAT();
-    void optimize(LocalImprovementFunctor& functor) override;
+    bool optimize(LocalImprovementFunctor& functor) override;
 
 
   private:

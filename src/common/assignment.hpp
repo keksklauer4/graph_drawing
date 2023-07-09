@@ -19,6 +19,7 @@ namespace gd
       bool isPointUsed(point_id_t p) const;
       size_t getNumUnassigned() const { return m_unassigned.size(); }
       vertex_t getAssignedVertex(point_id_t p) const;
+      const PointIdSet& getUnusedPoints() const { return m_remainingPoints; }
 
       VertexSet::const_iterator begin() const { return m_assignedVertices.begin(); }
       VertexSet::const_iterator end() const { return m_assignedVertices.end(); }
@@ -29,6 +30,7 @@ namespace gd
 
       VertexSet m_unassigned;
       VertexSet m_assignedVertices;
+      PointIdSet m_remainingPoints;
   };
 
 }

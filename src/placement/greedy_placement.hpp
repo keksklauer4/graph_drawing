@@ -8,6 +8,8 @@
 #include <verification/incremental_crossing.hpp>
 #include <placement/vertex_order.hpp>
 
+#include <common/random_gen.hpp>
+
 namespace gd
 {
 
@@ -26,9 +28,17 @@ namespace gd
       bool tryImprove(vertex_t candidate);
       bool circularRebuild(const KdTree& kdtree, Vector<VertexPointPair>& destructed, vertex_t candidate);
 
-      void improve_locally(LocalGurobi& optimizer, LocalImprovementNN& functor,
+      bool improve_locally(LocalGurobi& optimizer, LocalImprovementFunctor& functor,
                            vertex_t v, point_id_t p);
 
+
+      bool rebuild_collinear(vertex_t v);
+      void collinear_neighbors(vertex_t v, VertexVector& vec, MultiMap<vertex_t, point_id_t>& mapping);
+      void collinear_tedious(point_id_t p, VertexVector& vec, MultiMap<vertex_t, point_id_t>& mapping, VertexSet& vset);
+      void find_collinear_points(PointIdVector& points, vertex_t v);
+      bool rebuild(VertexVector& vec);
+
+      void visualize_rebuild();
 
     private:
       const Instance& m_instance;
@@ -40,8 +50,9 @@ namespace gd
       IncrementalCollinear m_incrementalCollinearity;
       IncrementalCrossing m_incrementalCrossing;
 
-      Set<point_id_t> m_unused;
       Vector<Point> m_mappedNeighbors;
+
+      RandomGen m_random;
   };
 
 }

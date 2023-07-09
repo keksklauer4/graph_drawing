@@ -16,11 +16,9 @@ namespace gd
         m_kdtree(kdtree), m_collinear(collinear),
         m_chosen(UINT_UNDEF), m_center(UINT_UNDEF) {}
 
-    virtual void initialize(vertex_t vertex, point_id_t point) = 0;
-
-    void set_points();
+    void set_points() override;
     bool has_start() const override { return m_start; }
-    void reset();
+    void reset() override;
 
   protected:
     void all_assigned();

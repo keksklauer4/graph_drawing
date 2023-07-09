@@ -157,6 +157,7 @@ namespace gd
   typedef Set<vertex_t> VertexSet;
   typedef Vector<vertex_t> VertexVector;
   typedef Vector<point_id_t> PointIdVector;
+  typedef Set<point_id_t> PointIdSet;
 
   class VertexAssignment;
   class Graph;
@@ -169,7 +170,7 @@ namespace gd
   class PointClustering;
   class HierarchicalGraph;
   class IncrementalCollinear;
-  struct LocalImprovementNN;
+  struct LocalImprovementFunctor;
   class LocalGurobi;
 }
 

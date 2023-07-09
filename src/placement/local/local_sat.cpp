@@ -6,12 +6,13 @@
 using namespace gd;
 
 
-void LocalSAT::optimize(LocalImprovementFunctor& functor)
+bool LocalSAT::optimize(LocalImprovementFunctor& functor)
 {
   m_solver = new EvalMaxSAT(0);
   m_functor = &functor;
   m_satVariables.clear();
   build_problem();
+  return false;
 }
 
 void LocalSAT::create_variables()

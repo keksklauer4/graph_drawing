@@ -20,6 +20,9 @@ namespace gd
   public:
     virtual ~LocalImprovementFunctor() {}
 
+    virtual void initialize(vertex_t vertex, point_id_t point) = 0;
+    virtual void set_points() = 0;
+
     range_iterator_t get_points(vertex_t v) const { return m_vertexToPoint.equal_range(v); }
     range_iterator_t get_vertices(point_id_t p) const { return m_pointToVertex.equal_range(p); }
 
@@ -31,6 +34,8 @@ namespace gd
     size_t get_num_vars() const { return m_vertexToPoint.size(); }
 
     bool is_valid() const { return m_valid; }
+
+    virtual void reset() = 0;
 
     template<typename Functor>
     void get_mapping(Functor func) const
@@ -72,7 +77,7 @@ namespace gd
     virtual ~LocalReOpt() { }
 
   public:
-    virtual void optimize(LocalImprovementFunctor& functor) = 0;
+    virtual bool optimize(LocalImprovementFunctor& functor) = 0;
 
   protected:
     void build_problem()
