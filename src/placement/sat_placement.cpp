@@ -615,6 +615,7 @@ void SATPlacement::iterative_solving(){
             std::cout << "--------------------------" << std::endl;
         }else{
             std::cout << "unsat" << std::endl;
+            std::cout << solver->getCost() << std::endl;
             current_iteration = m_max_iterations;
         }
         current_iteration++;

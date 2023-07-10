@@ -1,7 +1,11 @@
 #include "gd_types.hpp"
 #include "placement/greedy_placement.hpp"
 #include "verification/verifier.hpp"
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Intersections_3/Line_3_Segment_3.h>
+#include <CGAL/Interval_traits.h>
 #include <algorithm>
+#include <boost/geometry/geometries/polygon.hpp>
 #include <iostream>
 #include <CLI/CLI.hpp>
 
@@ -10,19 +14,24 @@
 #include <memory>
 
 #include <io/placement_visualizer.hpp>
+#include <placement/divide/tree_clustering.cpp>
 
-#include <EvalMaxSAT.h>
 #include <iterator>
 #include <iostream>
-#include <placement/sat_placement.cpp>
+//#include <placement/sat_placement.hpp>
 
 #include <placement/divide/graph_partitioning.hpp>
 #include <placement/divide/point_clustering.hpp>
 #include <utility>
 #include <vector>
 
+#include <CGAL/Polygon_2.h>
+#include <CGAL/Boolean_set_operations_2.h>
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef K::Point_2 CGALPoint;
+typedef CGAL::Polygon_2<K> Polygon_2;
 
-#include <placement/divide/tree_clustering.hpp>
+
 
 
 using namespace gd;
@@ -48,33 +57,18 @@ int main(int argc, const char** argv)
   
   HierarchicalGraphBuilder hierarchyBuilder{instance};
   HierarchicalGraph hierarchy = hierarchyBuilder.partition();
-
-  
-  std::cout << hierarchy.getNbPartitions() << std::endl;
-
-  partitioning::Partition root_partition = hierarchy.get_root_partition();
-  partitioning::Interval inter = root_partition.interval;
-  Queue<size_t> queue{};
-  queue.push(root_partition.left_child);
-  queue.push(root_partition.right_child);
-  while (!queue.empty()) {
-    size_t index = queue.front();
-    partitioning::Partition part = hierarchy.get_partition(index);
-    if(part.has_children()){
-      queue.push(part.left_child);
-      queue.push(part.right_child);
-    }else{
-      Vector<vertex_t> vertecies = hierarchy.get_partition_vertecies(part.interval.start, part.interval.end);
-      for(int i = 0; i < vertecies.size(); i++){
-        std::cout << vertecies[i] << " ";
-      }
-      std::cout << std::endl;
-    }
-    queue.pop();
-  }
+  ClusterMapBuilder cmb = ClusterMapBuilder(instance, hierarchy);
   /*
-  clustering::ClusterTree clusterTree(4, instance);
+  Point_2 points[] = {CGALPoint(0,0), CGALPoint(1,0), CGALPoint(1,1), CGALPoint(0,1)};
+  Polygon_2 p(points, points+3);
+  Point_2 points1[] = {CGALPoint(0,0), CGALPoint(3,0), CGALPoint(3,1), CGALPoint(2,1)};
+  Polygon_2 q(points1, points1+3);
+  std::cout << p.is_simple() << " is simple\t" << p.is_convex() << " is convex"<< std::endl;
+  std::cout << q.is_simple() << " is simple\t" << q.is_convex() << " is convex"<< std::endl;
+  std::cout << do_intersect(p, q) << std::endl;
+  */
   
+  /*
   PointClustering points{instance};
   points.cluster();
   std::vector<std::vector<int>> clusters(points.getSize());
@@ -142,19 +136,22 @@ int main(int argc, const char** argv)
   */
   std::cout << "Done parsing file." << std::endl;
 
+  /*
 
-  //GreedyPlacement placement{instance, order};
-  //const auto& assignment = placement.findPlacement();
-  //placement.improve(improvement_iters);
 
   //std::vector<std::vector<vertex_t>> partitions = {{0, 1, 3, 4}, {2, 5}, {6, 7}, {8}};
+  std::vector<std::vector<vertex_t>> partitions = {{0, 1, 3, 4, 2, 5,6, 7,8}};
   //std::vector<std::vector<point_id_t>> clusters = {{0, 1, 2, 3, 7, 8, 9, 10, 14, 15, 16, 17}, {21, 22, 23, 24, 28, 29, 30, 31}, {4, 5, 6, 11, 12, 13, 18,19, 20}, {25, 26, 27, 32, 33, 34}};
+  std::vector<std::vector<point_id_t>> clusters = {{0, 1, 2, 3, 7, 8, 9, 10, 14, 15, 16, 17, 21, 22, 23, 24, 28, 29, 30, 31, 4, 5, 6, 11, 12, 13, 18,19, 20, 25, 26, 27, 32, 33, 34}};
   //std::vector<int> n2p{0, 0, 1, 0, 0, 1, 2, 2, 3};
+  std::vector<int> n2p{0, 0, 0, 0, 0, 0, 0, 0, 0};
   //std::vector<int> po2c{0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 1, 1, 1, 1, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3};
+  std::vector<int> po2c{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   //std::vector<int> p2c{0, 1, 2, 3};
+  std::vector<int> p2c{0};
   //std::vector<int> c2p{0, 1, 2, 3};
+  std::vector<int> c2p{0};
 
-  /*
   int width = 64;
   int height = 64;
   int num_points = width * height;

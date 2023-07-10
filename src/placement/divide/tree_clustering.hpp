@@ -1,54 +1,56 @@
 
 #include "common/instance.hpp"
+#include <common/assignment.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <gd_types.hpp>
 #include <ostream>
+#include <unordered_map>
 #include <utility>
 #include <vector>
+#include "EvalMaxSAT.h"
 
 namespace gd
 {
-    namespace clustering {
-        class Cluster{
-            public:
-                Cluster(std::vector<coordinate_2d_t> points) : m_size(points.size()), m_points(points){};
-            public:
-                int size(){return m_size;};
-                coordinate_2d_t coord(int i){return m_points[i];};
-                void split_x(bool x){m_split_x = x;};
-                void sort_x_direction();
-                void sort_y_direction();
-                void build_children(bool split_x);
-                void print_points();
-                bool has_children(){return hasChildren;};
-                Cluster* get_left_child();
-                Cluster* get_right_child();
-            private:
-                const int m_size;
-                std::vector<coordinate_2d_t> m_points;
-                bool m_split_x = false;
-                Cluster* left_child = nullptr;
-                Cluster* right_child = nullptr;
-                bool hasChildren = false;
+    class ClusterMapBuilder{
+        public:
+            ClusterMapBuilder(const Instance& instance, HierarchicalGraph& hierarchy) : m_instance(instance), 
+            m_hierarchy(hierarchy), m_assignment(instance), solver(new EvalMaxSAT(0)){
+            //print_hierachies();
+            init_coord_2_id();
+            calculate_subgraphs();
+            //print_partitions();
+            //print_clusters();
+            //print_p_2_c_mapping();
+            iterative_sat();
         };
-        class ClusterTree{
-            public:
-                ClusterTree(const int depth, const Instance& instance) : m_depth(depth), m_instance(instance){
-                    initialize_root_cluster();
-                    build_clusters();
-                    print_leave_clusters();
-                };
-            private:
-                Cluster& initialize_root_cluster();
-                void build_clusters();
-                void print_root_cluster();
-                void print_leave_clusters();
-            private:
-                const int m_depth;
-                const Instance& m_instance;
-                Cluster* root = nullptr;
-                int splitted = 0;
-        };
-    }
+        public:
+            void print_hierachies();
+            void init_coord_2_id();
+            void calculate_subgraphs();
+            void print_partitions();
+            void print_clusters();
+            void print_p_2_c_mapping();
+            void iterative_sat();
+            bool is_valid();
+            void map_partition_2_cluster(std::vector<vertex_t> &nodes, std::vector<point_id_t> &points, UnorderedSet<vertex_pair_t, PairHashFunc<vertex_t>> &e_internal, UnorderedSet<vertex_pair_t, PairHashFunc<vertex_t>> &e_external);
+        private:
+            const Instance& m_instance;
+            VertexAssignment m_assignment;
+            HierarchicalGraph& m_hierarchy;
+            EvalMaxSAT* solver;
+            UnorderedMap<coordinate_2d_t, point_id_t, PairHashFunc<coordinate_t>> coord_2_id{};
+            UnorderedMap< point_id_t, coordinate_2d_t> id_2_coord{};
+            std::vector<std::vector<vertex_t>> final_partitions{};
+            std::vector<std::vector<point_id_t>> final_clusters{};
+            std::vector<int> node_2_partition_id{};
+            UnorderedSet<vertex_t> mapped_nodes{};
+            UnorderedSet<vertex_t> available_nodes{};
+            UnorderedMap<vertex_t, point_id_t> current_mapping{};
+            UnorderedMap<point_id_t, vertex_t> current_mapping_reverse{};
+            UnorderedSet<point_id_t> mapped_points{};
+            UnorderedSet<point_id_t> available_points{};
+            UnorderedSet<vertex_pair_t, PairHashFunc<vertex_t>> current_edges{};
+
+    };
 }
