@@ -298,7 +298,7 @@ namespace gd
         auto v_range = m_subgraph.equal_range(*u);
         for (auto x = vertex_range.first; x != vertex_range.second; ++x)
         {
-          if (u == x) continue;
+          if (*u == *x) continue;
           auto x_point_range = m_functor->get_points(*x);
           auto y_range = m_subgraph.equal_range(*x);
           for (auto v = v_range.first; v != v_range.second; ++v)
@@ -318,7 +318,6 @@ namespace gd
                   FOR_LOOP_POINTS(pX, x_point_range, pointX, pX->second == pU->second || pX->second == pV->second, {
                     FOR_LOOP_POINTS(pY, y_point_range, pointY,
                             pY->second == pU->second || pY->second == pV->second || pY->second == pX->second, {
-
                       if (gd::intersect(pointU, pointV, pointX, pointY))
                       {
                         func(*u, pointU.id, v->second, pointV.id,
@@ -351,14 +350,13 @@ namespace gd
         auto u_point_range = m_functor->get_points(*u);
         auto v_range = m_subgraph.equal_range(*u);
         for (auto x = vertex_range.first; x != vertex_range.second; ++x)
-        { // TODO: correct range?
-          if (u == x) continue;
+        {
+          if (*u == *x) continue;
           auto x_point_range = m_functor->get_points(*x);
           for (auto v = v_range.first; v != v_range.second; ++v)
           {
             if (v->second == *x) continue;
             auto v_point_range = m_functor->get_points(v->second);
-
             auto neighborRange = graph.getNeighborIterator(*x);
 
             FOR_LOOP_POINTS(pU, u_point_range, pointU, false, {

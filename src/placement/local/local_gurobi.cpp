@@ -199,14 +199,10 @@ GRBVar& LocalGurobi::get_edge_var(vertex_t u, point_id_t pU,
     var = &(*it);
 
     // create constraints to enforce the relation between the edge and the atual vars
-    std::cout << "u " << u << " pu " << pU << std::endl << "v " << v << " pV " << pV << std::endl;
-    std::cout << m_vars.contains(vertex_point_pair_t{u, pU}) << " "
-      << m_vars.contains(vertex_point_pair_t{v, pV}) << std::endl;
     GRBVar pointvars[2] = {
       *m_vars[vertex_point_pair_t{u, pU}],
       *m_vars[vertex_point_pair_t{v, pV}]
     };
-    std::cout << "D" << std::endl;
 
     m_model->addGenConstrAnd(*var, pointvars, 2);
   }

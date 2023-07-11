@@ -60,7 +60,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
   size_t num_placed = 0;
   while (isDefined((vertex = m_order.getNext())))
   {
-    std::cout << "#placed: " << num_placed << std::endl;
+    std::cout << "#placed " << num_placed << " (of " << m_instance.m_graph.getNbVertices() << ")" << std::endl;
     point_id_t target = findEligiblePoint(vertex);
     if (!isDefined(target))
     {
@@ -88,7 +88,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     if (m_incrementalCrossing.getTotalNumCrossings() == 0) continue;
 
     m_instance.m_timer.timer_move_op();
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 50; ++i)
     {
       vertex_t v = random.getRandom(embedded);
       if (tried.contains(v)) continue;
@@ -96,7 +96,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     }
     m_instance.m_timer.timer_move_op();
     m_instance.m_timer.timer_local_sat();
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 0; ++i)
     {
       vertex_t v = random.getRandom(embedded);
 

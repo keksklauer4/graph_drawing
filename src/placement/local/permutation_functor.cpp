@@ -28,7 +28,6 @@ void CollinearFunctor::initialize(vertex_t vertex, point_id_t point)
   {
     vertex_t v1 = m_assignment.getAssignedVertex(it->second.first);
     vertex_t v2 = m_assignment.getAssignedVertex(it->second.second);
-    std::cout << "Vertices " << v1 << ", " << v2 << std::endl;
     if (isDefined(v1) && isDefined(v2) && m_instance.m_graph.connected(v1, v2))
     {
       vset.insert(v1);
@@ -66,7 +65,4 @@ void CollinearFunctor::initialize(vertex_t vertex, point_id_t point)
   m_pointIds.push_back(point);
   m_previousMapping[idx++] = UINT_UNDEF;
   m_valid = true;
-
-  std::cout << "Size " << m_vertices.size() << std::endl;
-  std::cout << "Still valid " << m_valid << std::endl;
 }
