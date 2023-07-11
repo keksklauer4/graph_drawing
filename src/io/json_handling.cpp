@@ -1,4 +1,6 @@
 #include "json_handling.hpp"
+
+#include "common/instance.hpp"
 #include "common/pointset.hpp"
 #include "gd_types.hpp"
 
@@ -6,9 +8,12 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
+#include <sstream>
 #include <stdexcept>
 #include <sys/types.h>
 #include <iostream>
+
+#include <common/assignment.hpp>
 
 using namespace gd;
 using namespace rapidjson;
@@ -85,8 +90,54 @@ instance_t gd::parseInstanceFromFile(const std::string& filename)
 
   parseEdges(document, edges);
   parsePoints(document, points);
+  file.close();
   return Instance{
     Graph(edges),
     PointSet(std::move(points))
   };
+}
+
+void gd::dump_assignment(std::ostream& out, const Instance& instance,
+                         const VertexAssignment& assignment)
+{
+  const auto& graph = instance.m_graph;
+  const auto& pset = instance.m_points;
+  // dumping nodes
+  out << "{\"nodes\": [";
+  for (vertex_t v = 0; v < graph.getNbVertices(); ++v)
+  {
+    Point point{};
+    if (assignment.isAssigned(v)) point = pset.getPoint(assignment.getAssigned(v));
+    out << "{\"id\": " << v << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
+    if (v + 1 < graph.getNbVertices()) out << ",\n";
+    else out << "]," << std::endl;
+  }
+
+  // dumping edges
+  out << "\"edges\": [";
+  bool first = true;
+  for (const auto& edge : graph)
+  {
+    if (edge.first >= edge.second) continue;
+    if (first) first = false;
+    else
+    {
+      out << ",\n";
+    }
+
+    out << "{\"source\": " << edge.first << ", \"target\": " << edge.second << "}";
+  }
+  out << "],\n";
+
+  // dumping points
+  out << "{\"points\": [";
+  for (point_id_t p = 0; p < pset.getNumPoints(); ++p)
+  {
+    const auto& point = pset.getPoint(p);
+    out << "{\"id\": " << point.id << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
+    if (p + 1 < pset.getNumPoints()) out << ",\n";
+    else out << "]" << std::endl;
+  }
+
+  out << "}";
 }

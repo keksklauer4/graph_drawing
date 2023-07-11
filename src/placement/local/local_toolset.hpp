@@ -24,7 +24,7 @@ namespace gd
 
     LocalImprovementFunctor& getRandomFunctor()
     {
-      switch(2)//m_random.getRandomUint(3))
+      switch(m_random.getRandomUint(4))
       {
         case 0: return *reinterpret_cast<LocalImprovementFunctor*>(&m_bombFunctor);
         case 1: return *reinterpret_cast<LocalImprovementFunctor*>(&m_vertexNeighborFunctor);

@@ -9,6 +9,8 @@ namespace gd
 
   instance_t parseInstanceFromFile(const std::string& filename);
 
+  void dump_assignment(std::ostream& out, const Instance& instance,
+                       const VertexAssignment& assignment);
 }
 
 
