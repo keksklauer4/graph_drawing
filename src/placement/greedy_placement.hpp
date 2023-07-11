@@ -12,15 +12,19 @@
 
 namespace gd
 {
+  struct LocalImprovementToolset;
 
   class GreedyPlacement
   {
     public:
       GreedyPlacement(const Instance& instance, VertexOrder& order, PlacementVisualizer* vis = nullptr);
+      ~GreedyPlacement();
 
+      void start_placement(const VertexAssignment& assignment);
       const VertexAssignment& findPlacement();
       bool improve(size_t num_tries);
       size_t getNumCrossings() const;
+      const VertexAssignment& getAssignment() const { return m_assignment; }
 
     private:
       size_t placeInitial(vertex_t vertex, point_id_t target);
@@ -53,6 +57,8 @@ namespace gd
       Vector<Point> m_mappedNeighbors;
 
       RandomGen m_random;
+
+      LocalImprovementToolset* m_localImprovementToolset;
   };
 
 }

@@ -35,6 +35,19 @@ TimeTracker::TimeTracker(size_t limit_ms)
   m_timerAccumulated.resize(TOTAL_NUM_TIMERS);
 }
 
+void TimeTracker::set_time_limit(size_t limit_ms) const
+{
+  m_time_limit_ms = limit_ms;
+  m_start = std::chrono::system_clock::now();
+}
+
+double TimeTracker::get_fraction_time_limit() const
+{
+  if (m_time_limit_ms == 0) return 1;
+  return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_start).count())
+    / static_cast<double>(m_time_limit_ms);
+}
+
 bool TimeTracker::time_limit() const
 {
   return m_time_limit_ms <= std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_start).count();

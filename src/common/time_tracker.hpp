@@ -10,7 +10,11 @@ namespace gd
   class TimeTracker
   {
     public:
-      TimeTracker(size_t limit_ms = 1e9);
+      TimeTracker(size_t limit_ms = 1e12);
+
+      void set_time_limit(size_t limit_ms) const;
+
+      double get_fraction_time_limit() const;
 
       void timer_crossing() const;
       void timer_collinear() const;
@@ -33,8 +37,8 @@ namespace gd
       mutable Vector<size_t> m_timerStart;
       mutable Vector<size_t> m_timerAccumulated;
 
-      size_t m_time_limit_ms;
-      std::chrono::time_point<std::chrono::system_clock> m_start;
+      mutable size_t m_time_limit_ms;
+      mutable std::chrono::time_point<std::chrono::system_clock> m_start;
   };
 
   std::ostream& operator<<(std::ostream& os, const TimeTracker& timer);

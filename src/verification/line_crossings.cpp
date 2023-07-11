@@ -1,4 +1,5 @@
 #include "line_crossings.hpp"
+#include "gd_types.hpp"
 #include "verification/verification_utils.hpp"
 
 
@@ -84,4 +85,33 @@ size_t gd::countCrossings(const instance_t& instance, const VertexAssignment& as
   }
 
   return num_crossings;
+}
+
+void gd::enumerateCrossingPairs(const instance_t& instance, const VertexAssignment& assignment,
+    VertexSet& res, vertex_t u, vertex_t v, size_t max_size)
+{
+  const auto& graph = instance.m_graph;
+  const auto& pset = instance.m_points;
+  const auto& pU = pset.getPoint(assignment.getAssigned(u));
+  const auto& pV = pset.getPoint(assignment.getAssigned(v));
+  for (vertex_t x = 0; x < graph.getNbVertices(); ++x)
+  {
+    if (x == u || x == v || !assignment.isAssigned(x)) continue;
+    auto nRange = graph.getNeighborIterator(x);
+
+    const auto pX = pset.getPoint(assignment.getAssigned(x));
+    for (auto y = nRange.first; y != nRange.second; ++y)
+    {
+      if (*y == u || *y == v || !assignment.isAssigned(*y)
+        || (res.contains(x) && res.contains(*y))) continue;
+
+      const auto pY = pset.getPoint(assignment.getAssigned(*y));
+      if (gd::intersect(pU, pV, pX, pY))
+      {
+        res.insert(x);
+        res.insert(*y);
+        if (res.size() >= max_size) return;
+      }
+    }
+  }
 }

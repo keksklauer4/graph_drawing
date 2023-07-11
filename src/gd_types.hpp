@@ -18,6 +18,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstring>
+#include <memory>
 
 namespace gd
 {
