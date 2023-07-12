@@ -11,14 +11,25 @@
 #include <sstream>
 #include <stdexcept>
 #include <verification/verifier.hpp>
+#include <filesystem>
 
 using namespace gd;
 
+namespace fs = std::filesystem;
+
 namespace
 {
+  void create_path(const std::string& out_file)
+  {
+    fs::path path = out_file;
+    auto parent = path.parent_path();
+    fs::create_directories(parent);
+  }
+
   void dump_res(const instance_t& instance, const VertexAssignment& assignment,
                 const std::string& out_file, size_t time_limit_ms)
   {
+    create_path(out_file);
     size_t num_crossings = UINT_UNDEF;
     Verifier verifier{instance, assignment};
     bool valid = verifier.verify(num_crossings);
@@ -28,9 +39,13 @@ namespace
     if (isDefined(num_crossings)) filename << num_crossings;
     else filename << "-1";
     filename << ".json";
-
-    std::ofstream out{filename.str()};
-    if (!out.is_open()) throw std::runtime_error("Could not open output file :(");
+    std::string name = filename.str();
+    std::ofstream out(name);
+    if (!out.is_open())
+    {
+      std::cout << "ERROR: Could not open file \'" << name << "\' :(" << std::endl;
+      throw std::runtime_error("Could not open output file :(");
+    }
     gd::dump_assignment(out, instance, assignment);
     out.close();
   }
@@ -57,8 +72,6 @@ int main(int argc, const char** argv)
   SamplingSolver solver{instance};
   VertexAssignment assignment = solver.solve(vis_path);
 
-
-  
-
+  dump_res(instance, assignment, out_file, time_limit_ms);
   return 0;
 }

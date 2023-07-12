@@ -45,7 +45,8 @@ namespace gd
         const KdTree& kdtree, IncrementalCollinear& collinear)
       : LocalImprovementNN(instance, assignment, kdtree, collinear) {}
 
-    void initialize(vertex_t vertex, point_id_t point);
+    void initialize(vertex_t vertex, point_id_t point) override;
+    void name(std::ostream& os) const override { os << "LocalImprovementVertexNeighbors"; }
 
   };
 
@@ -57,7 +58,8 @@ namespace gd
         const KdTree& kdtree, IncrementalCollinear& collinear)
       : LocalImprovementNN(instance, assignment, kdtree, collinear) {}
 
-    void initialize(vertex_t vertex, point_id_t point);
+    void initialize(vertex_t vertex, point_id_t point) override;
+    void name(std::ostream& os) const override { os << "LocalImprovementBomb"; }
 
   };
 

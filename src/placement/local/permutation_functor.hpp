@@ -36,6 +36,8 @@ namespace gd
       : PermutationFunctor(instance, assignment, collinear){}
 
     void initialize(vertex_t vertex, point_id_t point) override;
+    void name(std::ostream& os) const override { os << "CollinearFunctor"; }
+
   };
 
   class PlacedPermutationFunctorCrater : public PermutationFunctor
@@ -47,6 +49,7 @@ namespace gd
 
     void initialize(vertex_t vertex, point_id_t point) override;
     bool has_start() const override { return true; }
+    void name(std::ostream& os) const override { os << "PlacedPermutationFunctorCrater"; }
 
   private:
     const KdTree& m_kdtree;
@@ -61,9 +64,9 @@ namespace gd
       : PermutationFunctor(instance, assignment, collinear){}
 
     void initialize(vertex_t vertex, point_id_t point) override;
-
     bool has_start() const override { return true; }
-  
+    void name(std::ostream& os) const override { os << "PlacedPermutationFunctorCrossing"; }
+
   private:
     RandomGen m_random;
   };

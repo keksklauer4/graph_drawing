@@ -20,6 +20,16 @@ using namespace gd;
 
 VertexAssignment SamplingSolver::solve(std::string vis_path)
 {
+  std::cout << "===========================\n";
+  std::cout << "Instance statistics\n";
+  std::cout << "#vertices: " << m_instance.m_graph.getNbVertices() << std::endl;
+  std::cout << "#edges:    " << m_instance.m_graph.getNbEdges() << std::endl;
+  std::cout << "#poins:    " << m_instance.m_points.getNumPoints() << std::endl;
+
+  std::cout << "Expecting at least " << std::max(0ul, (m_instance.m_graph.getNbEdges() - 3 * m_instance.m_graph.getNbVertices() - 6))
+            << " crossings." << std::endl;
+  std::cout << "===========================\n";
+
   Vector<std::unique_ptr<point_id_t[]>> assignments{};
 
   size_t best_crossings = UINT_MAX;
@@ -52,7 +62,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
     }
     idx++;
     std::cout << "NOTE: Timelimit at " << (m_instance.m_timer.get_fraction_time_limit() * 100) << "%.\n";
-  } while(m_instance.m_timer.get_fraction_time_limit() < 0.1
+  } while(m_instance.m_timer.get_fraction_time_limit() < 0.2
         || (!isDefined(best_idx) && !m_instance.m_timer.time_limit()));
 
   if (num_valid == 0)

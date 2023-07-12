@@ -103,18 +103,18 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
   const auto& graph = instance.m_graph;
   const auto& pset = instance.m_points;
   // dumping nodes
-  out << "{\"nodes\": [";
+  out << "{\"nodes\": [\n";
   for (vertex_t v = 0; v < graph.getNbVertices(); ++v)
   {
     Point point{};
     if (assignment.isAssigned(v)) point = pset.getPoint(assignment.getAssigned(v));
-    out << "{\"id\": " << v << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
+    out << "\t{\"id\": " << v << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
     if (v + 1 < graph.getNbVertices()) out << ",\n";
     else out << "]," << std::endl;
   }
 
   // dumping edges
-  out << "\"edges\": [";
+  out << "\"edges\": [\n";
   bool first = true;
   for (const auto& edge : graph)
   {
@@ -125,16 +125,16 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
       out << ",\n";
     }
 
-    out << "{\"source\": " << edge.first << ", \"target\": " << edge.second << "}";
+    out << "\t{\"source\": " << edge.first << ", \"target\": " << edge.second << "}";
   }
   out << "],\n";
 
   // dumping points
-  out << "{\"points\": [";
+  out << "\"points\": [\n";
   for (point_id_t p = 0; p < pset.getNumPoints(); ++p)
   {
     const auto& point = pset.getPoint(p);
-    out << "{\"id\": " << point.id << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
+    out << "\t{\"id\": " << point.id << ", \"x\": " << point.x << ", \"y\": " << point.y << "}";
     if (p + 1 < pset.getNumPoints()) out << ",\n";
     else out << "]" << std::endl;
   }

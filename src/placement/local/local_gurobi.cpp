@@ -21,6 +21,10 @@ bool LocalGurobi::optimize(LocalImprovementFunctor& functor)
   m_edgeVars.clear();
   m_edgeVarMap.clear();
 
+  std::cout << "Running Gurobi on ";
+  m_functor->name(std::cout);
+  std::cout << std::endl;
+
   m_env = new GRBEnv();
   m_env->set(GRB_DoubleParam_TimeLimit, 10);
   //m_env->set("OutputFlag", 0);
