@@ -31,6 +31,7 @@ namespace gd
   typedef size_t point_id_t;
 
   const static size_t UINT_UNDEF = (size_t)-1;
+  const static size_t UINT_MAX = std::numeric_limits<size_t>::max();
   const static vertex_t VERTEX_UNDEF = (size_t)-1;
   const static vertex_t POINT_UNDEF = (size_t)-1;
   const static double DOUBLE_MAX = std::numeric_limits<double>::max();
@@ -173,6 +174,7 @@ namespace gd
   class IncrementalCollinear;
   struct LocalImprovementFunctor;
   class LocalGurobi;
+  class CrossingHierarchy;
 }
 
 

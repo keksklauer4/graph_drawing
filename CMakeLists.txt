@@ -12,13 +12,15 @@ set(GD_SAT_SOLVER_INCLUDES external/EvalMaxSAT/lib/EvalMaxSAT/src external/EvalM
 set(CMAKE_BUILD_TYPE Release)
 set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
                     external/rapidjson/include/ external/HIP/interface/
+                    external/aabbcc/src/ ${AABBCC_INCLUDE_DIR}
                     ${EIGEN3_INCLUDE_DIR}/ external/hclust/
                     ${GD_SAT_SOLVER_INCLUDES}
                     ${GUROBI_INCLUDE_DIRS})
 
 set(GD_LINK_LIBS CGAL::CGAL kahip
-        Eigen3::Eigen hclust EvalMaxSAT) # lemon)
-set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY})
+        Eigen3::Eigen hclust EvalMaxSAT
+        aabbcc)
+set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY} debug ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -52,6 +54,7 @@ file(COPY external/rapidjson/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/external)
 add_library(graph_drawing)
 
 message("Gurobi lib " ${GUROBI_CXX_LIBRARY})
+message("AABBCC include dir " ${AABBCC_INCLUDE_DIR})
 
 target_include_directories(graph_drawing PRIVATE ${GD_INCLUDE_LIBS})
 
@@ -71,3 +74,4 @@ if ( ${GD_BUILD_TESTS} )
     file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     file(COPY test/gdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+

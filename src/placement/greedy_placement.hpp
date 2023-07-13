@@ -1,6 +1,7 @@
 #ifndef __GD__GREEDY_PLACEMENT_HPP__
 #define __GD__GREEDY_PLACEMENT_HPP__
 
+#include "common/crossing_hierarchy.hpp"
 #include <common/kd_tree.hpp>
 #include <gd_types.hpp>
 #include <common/assignment.hpp>
@@ -48,6 +49,7 @@ namespace gd
       const Instance& m_instance;
       VertexOrder& m_order;
       VertexAssignment m_assignment;
+      CrossingHierarchy m_crossingHierarchy;
       PlacementVisualizer* m_visualizer;
 
       CollinearCheck m_collChecker;

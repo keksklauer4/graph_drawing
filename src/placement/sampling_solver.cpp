@@ -13,6 +13,7 @@
 #include <memory>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 
 
 
@@ -121,6 +122,7 @@ std::unique_ptr<point_id_t[]> SamplingSolver::solve_instance(
 
   Verifier verifier{m_instance, res};
   valid = verifier.verify(num_crossings);
+  if (valid && num_crossings != placement.getNumCrossings()) throw std::runtime_error("What?! Wrong again?!");
 
   auto assignment = std::make_unique<point_id_t[]>(m_instance.m_graph.getNbVertices());
   for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)

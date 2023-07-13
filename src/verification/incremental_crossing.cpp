@@ -5,21 +5,25 @@
 #include <cassert>
 #include<common/instance.hpp>
 #include<common/assignment.hpp>
+#include <cstdio>
 #include <numeric>
 
 #include<iostream>
 
+#include <common/crossing_hierarchy.hpp>
+#include <stdexcept>
+
 using namespace gd;
 
 IncrementalCrossing::IncrementalCrossing(const Instance& instance,
-    const VertexAssignment& assignment)
-  : m_assignment(assignment), m_instance(instance)
+    const VertexAssignment& assignment, CrossingHierarchy& crossing_hierarchy)
+  : m_assignment(assignment), m_instance(instance), m_crossing_hierarchy(crossing_hierarchy)
 {
   m_numCrossings.resize(m_instance.m_graph.getNbVertices());
   std::fill(m_numCrossings.begin(), m_numCrossings.end(), 0);
 }
 
-size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bool fix, int delta)
+size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bool fix, int delta, size_t ub)
 {
   m_instance.m_timer.timer_crossing();
   const auto& graph = m_instance.m_graph;
@@ -56,23 +60,34 @@ size_t IncrementalCrossing::checkPlacement(vertex_t vertex, point_id_t point, bo
         m_numCrossings[vertex] += delta;
         m_numCrossings[neighbor] += delta;
       }
+      else if (num_crossings > ub) break;
     }
+    if (!fix && num_crossings > ub) break;
   }
   m_instance.m_timer.timer_crossing();
   return num_crossings;
 }
 
-size_t IncrementalCrossing::calculateCrossing(vertex_t vertex, point_id_t point)
+size_t IncrementalCrossing::calculateCrossing(vertex_t vertex, point_id_t point, size_t ub)
 {
-  return checkPlacement(vertex, point, false, 0);
+  /*m_instance.m_timer.timer_crossing();
+  size_t crossings = m_crossing_hierarchy.count_crossings(vertex, point, ub);
+  m_instance.m_timer.timer_crossing();*/
+  return checkPlacement(vertex, point, false, 0, ub);
 }
 
 size_t IncrementalCrossing::place(vertex_t vertex, point_id_t point)
 {
+  /*m_instance.m_timer.timer_crossing();
+  m_crossing_hierarchy.place(vertex, point);
+  m_instance.m_timer.timer_crossing();*/
   return checkPlacement(vertex, point, true, +1);
 }
 void IncrementalCrossing::deplace(vertex_t vertex, point_id_t point)
 {
+  /*m_instance.m_timer.timer_crossing();
+  m_crossing_hierarchy.deplace(vertex);
+  m_instance.m_timer.timer_crossing();*/
   checkPlacement(vertex, point, true, -1);
   assert(getNumCrossings(vertex) == 0 && "Vertex has been deplaced, so there should be no crossings!");
 }

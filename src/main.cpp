@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <verification/verifier.hpp>
 #include <filesystem>
+#include <AABBCC/AABBCC.h>
 
 using namespace gd;
 

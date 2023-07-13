@@ -36,9 +36,10 @@ GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, P
   : m_instance(instance),
     m_order(order),
     m_assignment(instance),
+    m_crossingHierarchy(m_instance, m_assignment),
     m_visualizer(vis),
     m_collChecker(), m_incrementalCollinearity(instance, m_assignment, m_collChecker),
-    m_incrementalCrossing(instance, m_assignment),
+    m_incrementalCrossing(instance, m_assignment, m_crossingHierarchy),
     m_localImprovementToolset(nullptr)
 {
   if (m_visualizer != nullptr) m_visualizer->setAssignment(m_assignment);
@@ -116,6 +117,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
     }
+    std::cout << "Improving\n";
 
     if (m_incrementalCrossing.getTotalNumCrossings() == 0) continue;
 
@@ -198,7 +200,7 @@ size_t GreedyPlacement::placeInitial(vertex_t vertex, point_id_t target)
 point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
 {
   point_pair_t line {};
-  std::pair<size_t, double> quality = std::make_pair(UINT_UNDEF, DOUBLE_MAX);;
+  std::pair<size_t, double> quality = std::make_pair(UINT_MAX - 1, DOUBLE_MAX);;
   point_id_t best = POINT_UNDEF;
   double distance = DOUBLE_MAX;
   for (point_id_t pointid : m_assignment.getUnusedPoints())
@@ -211,7 +213,7 @@ point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
 
       if (m_incrementalCollinearity.isValidCandidate(vertex, pointid))
       {
-        size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, pointid);
+        size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, pointid, quality.first);
         if (crossings < quality.first || (crossings == quality.first && distance < quality.second))
         {
           quality.first = crossings;
@@ -282,7 +284,7 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
     if (m_assignment.isPointUsed(point.id)
       || !m_incrementalCollinearity.isValidCandidate(vertex, point.id)) continue;
 
-    size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, point.id);
+    size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, point.id, num_crossings);
 
     if (crossings < num_crossings)
     {
