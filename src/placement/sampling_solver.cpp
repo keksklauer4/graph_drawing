@@ -27,7 +27,8 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
   std::cout << "#edges:    " << m_instance.m_graph.getNbEdges() << std::endl;
   std::cout << "#poins:    " << m_instance.m_points.getNumPoints() << std::endl;
 
-  std::cout << "Expecting at least " << std::max(0ul, (m_instance.m_graph.getNbEdges() - 3 * m_instance.m_graph.getNbVertices() - 6))
+  std::cout << "Expecting at least " << std::max(0l, (((int64_t)m_instance.m_graph.getNbEdges())
+                                                      - 3 * (int64_t)m_instance.m_graph.getNbVertices() - 6))
             << " crossings." << std::endl;
   std::cout << "===========================\n";
 
