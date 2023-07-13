@@ -1,6 +1,7 @@
 #ifndef __GD_LOCAL_FUNCTORS_HPP__
 #define __GD_LOCAL_FUNCTORS_HPP__
 
+#include "common/run_statistics.hpp"
 #include <gd_types.hpp>
 #include <placement/local/local_reopt.hpp>
 
@@ -47,7 +48,7 @@ namespace gd
 
     void initialize(vertex_t vertex, point_id_t point) override;
     void name(std::ostream& os) const override { os << "LocalImprovementVertexNeighbors"; }
-
+    LocalReoptFunctors type() const override { return LocalReoptFunctors::LOCAL_VERTEX_NEIGHBORS; }
   };
 
   struct LocalImprovementBomb : public LocalImprovementNN
@@ -60,6 +61,7 @@ namespace gd
 
     void initialize(vertex_t vertex, point_id_t point) override;
     void name(std::ostream& os) const override { os << "LocalImprovementBomb"; }
+    LocalReoptFunctors type() const override { return LocalReoptFunctors::LOCAL_IMPROVEMENT_BOMB; }
 
   };
 

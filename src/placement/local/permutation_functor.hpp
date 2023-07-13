@@ -37,6 +37,7 @@ namespace gd
 
     void initialize(vertex_t vertex, point_id_t point) override;
     void name(std::ostream& os) const override { os << "CollinearFunctor"; }
+    LocalReoptFunctors type() const override { return LocalReoptFunctors::COLLINEAR_REBUILD; }
 
   };
 
@@ -50,6 +51,7 @@ namespace gd
     void initialize(vertex_t vertex, point_id_t point) override;
     bool has_start() const override { return true; }
     void name(std::ostream& os) const override { os << "PlacedPermutationFunctorCrater"; }
+    LocalReoptFunctors type() const override { return LocalReoptFunctors::PERMUTATION_CRATER; }
 
   private:
     const KdTree& m_kdtree;
@@ -66,6 +68,7 @@ namespace gd
     void initialize(vertex_t vertex, point_id_t point) override;
     bool has_start() const override { return true; }
     void name(std::ostream& os) const override { os << "PlacedPermutationFunctorCrossing"; }
+    LocalReoptFunctors type() const override { return LocalReoptFunctors::PERMUTATION_CROSSING; }
 
   private:
     RandomGen m_random;

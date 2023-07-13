@@ -27,6 +27,8 @@ namespace
   }
 }
 
+#define GET_TIME_PASSED_MS (static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_start).count()))
+
 TimeTracker::TimeTracker(size_t limit_ms)
   : m_time_limit_ms(limit_ms), m_start(std::chrono::system_clock::now())
 {
@@ -44,13 +46,12 @@ void TimeTracker::set_time_limit(size_t limit_ms) const
 double TimeTracker::get_fraction_time_limit() const
 {
   if (m_time_limit_ms == 0) return 1;
-  return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_start).count())
-    / static_cast<double>(m_time_limit_ms);
+  return GET_TIME_PASSED_MS / static_cast<double>(m_time_limit_ms);
 }
 
 bool TimeTracker::time_limit() const
 {
-  return m_time_limit_ms <= std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_start).count();
+  return m_time_limit_ms <= GET_TIME_PASSED_MS;
 }
 
 void TimeTracker::start_timer(size_t time_idx) const
@@ -103,4 +104,17 @@ std::ostream& gd::operator<<(std::ostream& os, const TimeTracker& timer)
   OUTPUT_TIMER("Gurobi model timer: ", timer.get_timer_val(MTIMER_GUROBI_BUILD_MODEL));
   os << "===========================\n";
   return os;
+}
+
+void TimeTracker::end_all_timers() const
+{
+  for (size_t idx = 0; idx < TOTAL_NUM_TIMERS; ++idx)
+  {
+    if (isDefined(m_timerStart[idx])) end_timer(idx);
+  }
+}
+
+double TimeTracker::get_timer_val_frac(size_t time_idx) const
+{
+  return (get_timer_val(time_idx) / 1e6f) / GET_TIME_PASSED_MS;
 }

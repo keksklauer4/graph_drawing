@@ -82,6 +82,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
             << " crossings." << std::endl;
 
   VertexAssignment assignment = make_assignment(assignments[best_idx].get());
+  STATS(m_instance.m_stats.set_current_run(best_idx);)
 
   MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
   GreedyPlacement placement{m_instance, order, nullptr};
@@ -109,6 +110,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
     assert(greedy_sol.isAssigned(v) && "Vertex should be assigned!");
     res.assign(v, greedy_sol.getAssigned(v));
   }
+  STATS(m_instance.m_timer.end_all_timers();)
   return res;
 }
 
@@ -116,13 +118,14 @@ std::unique_ptr<point_id_t[]> SamplingSolver::solve_instance(
           PlacementVisualizer* visualizer,
           bool& valid, size_t& num_crossings)
 {
+  STATS(m_instance.m_stats.new_run();)
   MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
   GreedyPlacement placement{m_instance, order, visualizer};
   const auto& res = placement.findPlacement();
 
   Verifier verifier{m_instance, res};
   valid = verifier.verify(num_crossings);
-  if (valid && num_crossings != placement.getNumCrossings()) throw std::runtime_error("What?! Wrong again?!");
+  STATS(m_instance.m_stats.set_initial_placement_quality(valid, num_crossings);)
 
   auto assignment = std::make_unique<point_id_t[]>(m_instance.m_graph.getNbVertices());
   for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)

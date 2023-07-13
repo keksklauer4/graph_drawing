@@ -27,6 +27,23 @@ namespace
     fs::create_directories(parent);
   }
 
+  void dump_stats(const instance_t& instance, const std::string out_file)
+  {
+    std::stringstream filename;
+    create_path(out_file);
+    filename << out_file << "stats.json";
+
+    std::string name = filename.str();
+    std::ofstream out(name);
+    if (!out.is_open())
+    {
+      std::cout << "ERROR: Could not open file \'" << name << "\' for writing the statistics :(" << std::endl;
+      throw std::runtime_error("Could not open output file for statistics :(");
+    }
+    gd::dump_statistics(out, instance.m_stats);
+    out.close();
+  }
+
   void dump_res(const instance_t& instance, const VertexAssignment& assignment,
                 const std::string& out_file, size_t time_limit_ms)
   {
@@ -49,7 +66,10 @@ namespace
     }
     gd::dump_assignment(out, instance, assignment);
     out.close();
+
+    STATS(dump_stats(instance, out_file);)
   }
+
 }
 
 int main(int argc, const char** argv)

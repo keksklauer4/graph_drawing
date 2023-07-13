@@ -1,6 +1,7 @@
 #ifndef __GD_LOCAL_REOPT_HPP__
 #define __GD_LOCAL_REOPT_HPP__
 
+#include "common/run_statistics.hpp"
 #include <gd_types.hpp>
 #include <common/instance.hpp>
 #include <common/assignment.hpp>
@@ -53,6 +54,7 @@ namespace gd
     void set_mapped(size_t idx, point_id_t p) { m_previousMapping[idx] = p; }
 
     virtual void name(std::ostream& os) const = 0;
+    virtual LocalReoptFunctors type() const = 0;
 
   protected:
     void record_previous_mapping(const VertexAssignment& assignment);

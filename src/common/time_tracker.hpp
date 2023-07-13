@@ -6,6 +6,17 @@
 
 namespace gd
 {
+  enum TIMER_TYPES : int
+  {
+    ETIMER_CROSSING = 0,
+    ETIMER_COLLINEAR = 1,
+    ETIMER_LOCAL_SAT = 2,
+    ETIMER_MOVE_OP = 3,
+    ETIMER_INITIAL_PLACEMENT = 4,
+    ETIMER_COLLINEAR_REBUILD = 5,
+    ETIMER_GUROBI = 6,
+    ETIMER_GUROBI_BUILD_MODEL = 7
+  };
 
   class TimeTracker
   {
@@ -27,6 +38,9 @@ namespace gd
 
       bool time_limit() const;
       size_t get_timer_val(size_t time_idx) const;
+      double get_timer_val_frac(size_t time_idx) const;
+
+      void end_all_timers() const;
 
     private:
       void toggle_timer(size_t time_idx) const;

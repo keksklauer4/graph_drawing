@@ -4,6 +4,7 @@
 #include "placement/local/permutation_functor.hpp"
 
 #include <common/random_gen.hpp>
+#include <cstdint>
 #include <placement/placement_metrics.hpp>
 
 #include <cassert>
@@ -97,7 +98,17 @@ const VertexAssignment& GreedyPlacement::findPlacement()
                       : m_random.getRandomUint(pset.getNumPoints()));
     if (!isDefined(target))
     {
-      if (!rebuild_collinear(vertex)) throw std::runtime_error("Can't find a point to map to... :(");
+      bool successful_rebuild = rebuild_collinear(vertex);
+      if (!successful_rebuild)
+      {
+        STATS(m_instance.m_stats.set_timestamp_crossings(
+          m_incrementalCrossing.getTotalNumCrossings(),
+          WorkType::DEATH);)
+        throw std::runtime_error("Can't find a point to map to... :(");
+      }
+      STATS(m_instance.m_stats.set_timestamp_crossings(
+        m_incrementalCrossing.getTotalNumCrossings(),
+        WorkType::COLLINEARITY_REBUILD);)
       continue;
     }
     else
@@ -106,6 +117,9 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       placeInitial(vertex, target);
       m_instance.m_timer.timer_initial_placement();
       embedded.push_back(vertex);
+      STATS(m_instance.m_stats.set_timestamp_crossings(
+        m_incrementalCrossing.getTotalNumCrossings(),
+        WorkType::INIT_PLACING);)
     }
     ++num_placed;
     if (m_visualizer != nullptr)
@@ -127,6 +141,9 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       vertex_t v = random.getRandom(embedded);
       if (tried.contains(v)) continue;
       tryImprove(v);
+      STATS(m_instance.m_stats.set_timestamp_crossings(
+        m_incrementalCrossing.getTotalNumCrossings(),
+        WorkType::MOVE_OP);)
     }
     m_instance.m_timer.timer_move_op();
 
@@ -249,11 +266,18 @@ bool GreedyPlacement::improve(size_t num_tries)
   for (size_t iter = 0; iter < num_tries && !m_instance.m_timer.time_limit(); ++iter)
   {
     vertex_t candidate = m_localImprovementToolset->m_random.getRandomUint(m_instance.m_graph.getNbVertices());
+   STATS( size_t before = m_incrementalCrossing.getTotalNumCrossings();)
+    auto& functor = m_localImprovementToolset->getRandomFunctor();
     improve_locally(m_localImprovementToolset->optimizer,
-        m_localImprovementToolset->getRandomFunctor(),
-        candidate,
+        functor, candidate,
         m_assignment.getAssigned(candidate));
-
+    STATS(size_t now = m_incrementalCrossing.getTotalNumCrossings();)
+    STATS(m_instance.m_stats.set_timestamp_crossings(
+        now,
+        WorkType::REOPT);)
+    STATS(m_instance.m_stats.set_local_reopt_result(
+        functor.type(),
+        ((int64_t)now) - ((int64_t)before));)
 
     for (size_t i = 0; i < 100 && !m_instance.m_timer.time_limit(); ++i)
     {
@@ -262,6 +286,9 @@ bool GreedyPlacement::improve(size_t num_tries)
       if (tried.contains(candidate)) continue;
       tried.insert(candidate);
       tryImprove(candidate);
+      STATS(m_instance.m_stats.set_timestamp_crossings(
+        m_incrementalCrossing.getTotalNumCrossings(),
+        WorkType::MOVE_OP);)
     }
   }
   return m_incrementalCrossing.getTotalNumCrossings() < previous_crossings;

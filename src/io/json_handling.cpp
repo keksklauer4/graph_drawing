@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include <common/assignment.hpp>
+#include <io/printing.hpp>
 
 using namespace gd;
 using namespace rapidjson;
@@ -140,4 +141,9 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
   }
 
   out << "}";
+}
+
+void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
+{
+  out << "{\"TODO\": 1}";
 }
