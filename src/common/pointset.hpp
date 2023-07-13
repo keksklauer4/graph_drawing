@@ -13,7 +13,13 @@ namespace gd
       using point_iterator_pair_t = std::pair<point_iterator_t, point_iterator_t>;
     public:
       PointSet(){}
-      PointSet(Vector<point_t>&& points): m_points(points) {}
+      PointSet(Vector<point_t>&& points): m_points(points)
+      {
+        std::sort(m_points.begin(), m_points.end(),
+          [](const Point& p1, const Point& p2) -> bool{
+            return p1.id < p2.id;
+        });
+      }
 
       point_iterator_pair_t getPointIterator() const
       { return std::make_pair(m_points.begin(), m_points.end()); }

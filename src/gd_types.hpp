@@ -8,14 +8,17 @@
 #include <ostream>
 #include <utility>
 #include <vector>
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
 #include <map>
 #include <set>
 #include <stack>
 #include <queue>
-
+#include <cassert>
+#include <chrono>
 #include <cstring>
+#include <memory>
 
 namespace gd
 {
@@ -28,6 +31,7 @@ namespace gd
   typedef size_t point_id_t;
 
   const static size_t UINT_UNDEF = (size_t)-1;
+  const static size_t UINT_MAX = std::numeric_limits<size_t>::max();
   const static vertex_t VERTEX_UNDEF = (size_t)-1;
   const static vertex_t POINT_UNDEF = (size_t)-1;
   const static double DOUBLE_MAX = std::numeric_limits<double>::max();
@@ -36,6 +40,9 @@ namespace gd
 
   template<typename T, typename Allocator = std::allocator<T>>
   using Vector = std::vector<T, Allocator>;
+
+  template<typename T, typename Allocator = std::allocator<T>>
+  using List = std::list<T, Allocator>;
 
   template<typename T, typename Compare = std::less<T>, typename Allocator = std::allocator<T>>
   using Set = std::set<T, Compare, Allocator>;
@@ -65,6 +72,9 @@ namespace gd
 
   template<typename T>
   using Stack = std::stack<T, std::vector<T>>;
+
+  template<typename Iterator>
+  using RangeIterator = std::pair<Iterator, Iterator>;
 
   typedef struct Edge
   {
@@ -146,6 +156,10 @@ namespace gd
   { return p1.degree < p2.degree; }
 
   typedef Map<coordinate_2d_t, point_id_t, PairLexicographicOrdering<coordinate_t>> CoordinateToIdMap;
+  typedef Set<vertex_t> VertexSet;
+  typedef Vector<vertex_t> VertexVector;
+  typedef Vector<point_id_t> PointIdVector;
+  typedef Set<point_id_t> PointIdSet;
 
   class VertexAssignment;
   class Graph;
@@ -157,6 +171,10 @@ namespace gd
   class KdTree;
   class PointClustering;
   class HierarchicalGraph;
+  class IncrementalCollinear;
+  struct LocalImprovementFunctor;
+  class LocalGurobi;
+  class CrossingHierarchy;
 }
 
 

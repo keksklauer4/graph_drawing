@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <common/graph.hpp>
 #include <verification/incremental_collinear.hpp>
+#include <common/crossing_hierarchy.hpp>
 
 using namespace gd;
 
@@ -166,13 +167,15 @@ namespace
     }
   }
 
-  void built_different_permutations(const instance_t& instance, const VertexAssignment& assignment,
+  void build_different_permutations(const instance_t& instance, const VertexAssignment& assignment,
     std::initializer_list<vertex_t> permutation1, std::initializer_list<vertex_t> permutation2)
   {
     VertexAssignment assign1 {instance};
     VertexAssignment assign2 {instance};
-    IncrementalCrossing inc1{instance, assign1};
-    IncrementalCrossing inc2{instance, assign2};
+    CrossingHierarchy crossing1{instance, assign1};
+    CrossingHierarchy crossing2{instance, assign2};
+    IncrementalCrossing inc1{instance, assign1, crossing1};
+    IncrementalCrossing inc2{instance, assign2, crossing2};
     for (vertex_t v : permutation1)
     {
       inc1.place(v, assignment.getAssigned(v));
@@ -214,13 +217,15 @@ TEST(IncrementalCrossingTest, SameCrossings_Different_Permutations)
     PAIR(5, 5),
   });
 
-  built_different_permutations(instance, assignment,
+  build_different_permutations(instance, assignment,
     {0,1,2,3,4,5},
     {5,4,3,2,1,0});
 
   VertexAssignment as{instance};
-  IncrementalCrossing inc{instance, as};
-  IncrementalCrossing inc_static{instance, as};
+  CrossingHierarchy crossing{instance, as};
+  CrossingHierarchy crossing_static{instance, as};
+  IncrementalCrossing inc{instance, as, crossing};
+  IncrementalCrossing inc_static{instance, as, crossing_static};
 
   for (vertex_t v = 0; v < instance.m_graph.getNbVertices(); ++v)
   {

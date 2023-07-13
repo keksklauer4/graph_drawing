@@ -36,7 +36,8 @@ namespace gd
   class Graph
   {
     public:
-      typedef std::pair<Vector<vertex_t>::const_iterator,Vector<vertex_t>::const_iterator> neighbor_iterator_t;
+      typedef RangeIterator<Vector<vertex_t>::const_iterator> neighbor_iterator_t;
+      typedef Set<vertex_pair_t, PairLexicographicOrdering<vertex_t>> EdgeSet;
 
     public:
       Graph() {}
@@ -45,6 +46,7 @@ namespace gd
       size_t getNbVertices() const { return m_vertices.size(); }
       size_t getNbEdges() const { return m_edges.size() / 2; }
       size_t getDegree(vertex_t vertex) const;
+      bool connected(vertex_t a, vertex_t b) const;
 
       neighbor_iterator_t getNeighborIterator(vertex_t vertex) const;
       AdjacencyArrayIterator begin() const { return AdjacencyArrayIterator(m_vertices, m_edges); }
@@ -53,6 +55,7 @@ namespace gd
     private:
       Vector<vertex_t> m_vertices;
       Vector<vertex_t> m_edges;
+      EdgeSet m_edgeSet;
 
   };
 

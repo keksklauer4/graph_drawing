@@ -9,6 +9,8 @@ endif()
 add_subdirectory(HIP)
 add_subdirectory(Eigen)
 add_subdirectory(hclust)
+add_subdirectory(gurobi)
+add_subdirectory(aabbcc)
 
 # -----------------------
 # EvalMaxSAT

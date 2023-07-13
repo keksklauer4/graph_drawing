@@ -32,6 +32,7 @@ KdTree::KdTree(const PointSet& pset)
 void KdTree::k_nearest_neighbors(const Point& p, size_t k,
   std::function<bool(size_t)> func) const
 {
+  if (k == 0) return;
   size_t remaining = k;
   Neighbor_search search(*m_tree, Point_2(p.x, p.y), m_points.size());
   for(Neighbor_search::iterator it = search.begin(); it != search.end(); it++)

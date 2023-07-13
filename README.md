@@ -39,5 +39,7 @@ ninja
 #### [CGAL](https://www.cgal.org/) (License: [GPL/LGPL3.0](https://www.cgal.org/license.html))
 #### [Eigen](https://eigen.tuxfamily.org/) (License: [MPL2](https://www.mozilla.org/en-US/MPL/2.0/), disabled LGPL3+ code)
 #### [KaHIP](https://github.com/KaHIP/KaHIP) (License: [MIT](https://choosealicense.com/licenses/mit/))
+#### [AABBCC](https://github.com/lohedges/aabbcc) (we use [this fork](https://github.com/keksklauer4/aabbcc)) (License: [zlib](http://zlib.net/zlib_license.html))
+#### [hclust](https://github.com/cdalitz/hclust-cpp) (we use [this fork](https://github.com/keksklauer4/hclust-cpp)) (License: [individual](https://github.com/cdalitz/hclust-cpp/blob/master/LICENSE))
 
 //Todo
