@@ -1,14 +1,15 @@
 # Obtained from https://support.gurobi.com/hc/en-us/articles/360039499751-How-do-I-use-CMake-to-build-Gurobi-C-C-projects-
 
-find_path(GUROBI_INCLUDE_DIRS
-    NAMES gurobi_c.h
-    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
-    PATH_SUFFIXES include)
+#ein paar zeilen auskommentiert
+#find_path(GUROBI_INCLUDE_DIRS
+#    NAMES gurobi_c.h
+#    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+#    PATH_SUFFIXES include)
 
-find_library(GUROBI_LIBRARY
-    NAMES gurobi gurobi100
-    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
-    PATH_SUFFIXES lib)
+#find_library(GUROBI_LIBRARY
+#    NAMES gurobi gurobi100
+#    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+#    PATH_SUFFIXES lib)
 
 if(CXX)
     if(MSVC)
@@ -29,11 +30,15 @@ if(CXX)
             HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
             PATH_SUFFIXES lib)
     else()
-        find_library(GUROBI_CXX_LIBRARY
-            NAMES gurobi_c++
-            HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
-            PATH_SUFFIXES lib)
-        set(GUROBI_CXX_DEBUG_LIBRARY ${GUROBI_CXX_LIBRARY})
+    	message("no year")
+        #find_library(GUROBI_CXX_LIBRARY
+        #    NAMES gurobi_c++
+        #    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+        #    PATH_SUFFIXES lib)
+        #set(GUROBI_INCLUDE_DIRS "/opt/gurobi1002/linux64/include/gurobi_c.h")
+        #set(GUROBI_LIBRARY "/opt/gurobi1002/linux64/lib/libgurobi100.so" "/opt/gurobi1002/linux64/lib/libgurobi.so.10.0.2")
+        #set(GUROBI_CXX_LIBRARY "/opt/gurobi1002/linux64/lib/libgurobi_c++.a")
+        #set(GUROBI_CXX_DEBUG_LIBRARY ${GUROBI_CXX_LIBRARY})
     endif()
 endif()
 
