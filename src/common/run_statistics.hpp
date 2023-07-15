@@ -57,6 +57,14 @@ namespace gd
     void set_current_run(size_t idx);
     void set_initial_placement_quality(bool valid, size_t num_crossing);
 
+    size_t get_num_m_reopt_results() const;
+    size_t get_num_m_init_placement_results() const;
+    size_t get_num_m_progress() const;
+    const size_t& get_m_num_runs() const;
+    const std::pair<bool, size_t>& get_m_init_placement_results_i(int i) const;
+    const CurrentProgress& get_m_progress_i(int i) const;
+    const std::pair<LocalReoptFunctors, int64_t>& get_m_reopt_results_i(int i) const;
+
   private:
     const TimeTracker& m_timer;
     Vector<std::pair<LocalReoptFunctors, int64_t>> m_reopt_results;

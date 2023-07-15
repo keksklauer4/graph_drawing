@@ -1,4 +1,5 @@
 #include "run_statistics.hpp"
+#include <cstddef>
 #include <utility>
 
 using namespace gd;
@@ -39,3 +40,39 @@ void RunStatistics::set_initial_placement_quality(bool valid, size_t num_crossin
   m_init_placement_results.push_back(std::make_pair(valid, num_crossing));
 }
 
+
+const size_t& RunStatistics::get_m_num_runs() const
+{
+  return m_num_runs;
+}
+
+size_t RunStatistics::get_num_m_init_placement_results() const
+{
+  return m_init_placement_results.size();
+}
+
+const std::pair<bool, size_t>& RunStatistics::get_m_init_placement_results_i(int i) const
+{
+  return m_init_placement_results[i];
+}
+
+size_t RunStatistics::get_num_m_progress() const
+{
+  return m_progress.size();
+}
+
+const CurrentProgress& RunStatistics::get_m_progress_i(int i) const
+{
+  return m_progress[i];
+}
+
+
+size_t RunStatistics::get_num_m_reopt_results() const
+{
+  return m_reopt_results.size();
+}
+
+const std::pair<LocalReoptFunctors, int64_t>& RunStatistics::get_m_reopt_results_i(int i) const
+{
+  return m_reopt_results[i];
+}

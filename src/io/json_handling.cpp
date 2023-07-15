@@ -4,6 +4,7 @@
 #include "common/pointset.hpp"
 #include "gd_types.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -15,6 +16,8 @@
 
 #include <common/assignment.hpp>
 #include <io/printing.hpp>
+
+#include <common/run_statistics.hpp>
 
 using namespace gd;
 using namespace rapidjson;
@@ -145,5 +148,65 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
 
 void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
 {
-  out << "{\"TODO\": 1}";
+  //out << "{\"TODO\": 1}";
+  out << "number of runs = " << statistics.get_m_num_runs() << "\n";
+  auto num_progress = statistics.get_num_m_progress();
+  out << "number of progressions = " << num_progress << "\n";
+  out << "[progression :\n";
+  int current_id = -1;
+  int placed_nodes = 0;
+  int move_opts = 0;
+  int reopts = 0;
+  int coll_rebuilds = 0;
+  int deaths = 0;
+  int handled_placements = 0;
+  for(size_t i = 0; i < num_progress; i++){
+    auto current = statistics.get_m_progress_i(i);
+    if(current_id != current.curr_placement_idx)
+    {
+      current_id = current.curr_placement_idx;
+      if(current_id > 0) out << "\ncrossings = " << statistics.get_m_progress_i(i - 1).curr_crossings << "]\n";
+      if(handled_placements < statistics.get_m_num_runs()) out << "initial_placement : " << current_id << " [\n";
+      move_opts = 0;
+      reopts = 0;
+      coll_rebuilds = 0;
+      deaths = 0;
+      placed_nodes = 0;
+      handled_placements++;
+    }
+    if(current.type == 0) 
+    {
+      if(placed_nodes > 0)
+      {
+        out << "{iteration : " << i << "; vertex_id : " <<  placed_nodes << "; move_opts : " << move_opts << "; reopts : " << reopts << "; coll_rebuilds : " << coll_rebuilds << "; deaths : " << deaths << "}, ";
+        move_opts = 0;
+        reopts = 0;
+        coll_rebuilds = 0;
+        deaths = 0;
+      }
+      placed_nodes++;
+    }
+    else 
+    {
+      if(current.type == 1) move_opts++;
+      if(current.type == 2) reopts++;
+      if(current.type == 3) coll_rebuilds++;
+      if(current.type == 4) deaths++;
+    }
+  }
+  auto num_init_placements = statistics.get_num_m_init_placement_results();
+  out << "number of initial placements = " << num_init_placements << "\n";
+  out << "[initial_placements :\n";
+  for(size_t i = 0; i < num_init_placements; i++){
+    out << "{ valid = " << statistics.get_m_init_placement_results_i(i).first << ", with crossings = " << statistics.get_m_init_placement_results_i(i).second << "\n";
+  }
+  out << "]\n";
+
+  auto num_m_reopt = statistics.get_num_m_reopt_results();
+  out << "number of reopts = " << num_m_reopt << "\n";
+  out << "[reopt_results :\n";
+  for (size_t i = 0; i < num_m_reopt; i++) {
+    out << "{ method " << statistics.get_m_reopt_results_i(i).first << ", changed the number of crossings by " << statistics.get_m_reopt_results_i(i).second << "}\n";
+  }
+  out << "]";
 }
