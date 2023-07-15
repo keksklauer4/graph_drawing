@@ -64,6 +64,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
     }
     idx++;
     std::cout << "NOTE: Timelimit at " << (m_instance.m_timer.get_fraction_time_limit() * 100) << "%.\n";
+    if (valid && num_crossings == 0) break;
   } while(m_instance.m_timer.get_fraction_time_limit() < 0.2
         || (!isDefined(best_idx) && !m_instance.m_timer.time_limit()));
 
@@ -112,6 +113,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
     res.assign(v, greedy_sol.getAssigned(v));
   }
   STATS(m_instance.m_timer.end_all_timers();)
+  std::cout << "NOTE: Terminating with " << placement.getNumCrossings() << " crossings.\n";
   return res;
 }
 
@@ -120,20 +122,26 @@ std::unique_ptr<point_id_t[]> SamplingSolver::solve_instance(
           bool& valid, size_t& num_crossings)
 {
   STATS(m_instance.m_stats.new_run();)
-  MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
-  GreedyPlacement placement{m_instance, order, visualizer};
-  const auto& res = placement.findPlacement();
+  try {
+    MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
+    GreedyPlacement placement{m_instance, order, visualizer};
+    const auto& res = placement.findPlacement();
 
-  Verifier verifier{m_instance, res};
-  valid = verifier.verify(num_crossings);
-  STATS(m_instance.m_stats.set_initial_placement_quality(valid, num_crossings);)
+    Verifier verifier{m_instance, res};
+    valid = verifier.verify(num_crossings);
+    STATS(m_instance.m_stats.set_initial_placement_quality(valid, num_crossings);)
 
-  auto assignment = std::make_unique<point_id_t[]>(m_instance.m_graph.getNbVertices());
-  for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)
-  {
-    if (res.isAssigned(v)) assignment[v] = res.getAssigned(v);
+    auto assignment = std::make_unique<point_id_t[]>(m_instance.m_graph.getNbVertices());
+    for (vertex_t v = 0; v < m_instance.m_graph.getNbVertices(); ++v)
+    {
+      if (res.isAssigned(v)) assignment[v] = res.getAssigned(v);
+    }
+    return assignment;
+  } catch (std::runtime_error){
+    valid = false;
+    num_crossings = UINT_UNDEF;
+    return std::unique_ptr<point_id_t[]>();
   }
-  return assignment;
 }
 
 VertexAssignment SamplingSolver::make_assignment(point_id_t* assigned)

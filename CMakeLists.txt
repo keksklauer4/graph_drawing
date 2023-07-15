@@ -20,7 +20,7 @@ set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
 set(GD_LINK_LIBS CGAL::CGAL kahip
         Eigen3::Eigen hclust EvalMaxSAT
         aabbcc)
-set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY} debug ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY})
+set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY} debug ${GUROBI_CXX_DEBUG_LIBRARY} ${GUROBI_LIBRARY})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

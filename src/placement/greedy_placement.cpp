@@ -3,6 +3,7 @@
 #include "placement/local/local_reopt.hpp"
 #include "placement/local/permutation_functor.hpp"
 
+#include <chrono>
 #include <common/random_gen.hpp>
 #include <cstdint>
 #include <placement/placement_metrics.hpp>
@@ -20,6 +21,7 @@
 #include <placement/vertex_order.hpp>
 
 #include <ostream>
+#include <ratio>
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
@@ -41,7 +43,7 @@ GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, P
     m_visualizer(vis),
     m_collChecker(), m_incrementalCollinearity(instance, m_assignment, m_collChecker),
     m_incrementalCrossing(instance, m_assignment, m_crossingHierarchy),
-    m_localImprovementToolset(nullptr)
+    m_localImprovementToolset(nullptr), m_numImprovementIters(1)
 {
   if (m_visualizer != nullptr) m_visualizer->setAssignment(m_assignment);
 }
@@ -109,7 +111,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
         WorkType::COLLINEARITY_REBUILD);)
-      continue;
+      embedded.push_back(vertex);
     }
     else
     {
@@ -122,7 +124,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
         WorkType::INIT_PLACING);)
     }
     ++num_placed;
-    if (m_visualizer != nullptr)
+    if (m_visualizer != nullptr && isDefined(target))
     {
       m_visualizer->draw([&](std::ostream& stream){
         stream << "Placing vertex " << vertex << " onto point "
@@ -131,16 +133,17 @@ const VertexAssignment& GreedyPlacement::findPlacement()
           << m_incrementalCrossing.getTotalNumCrossings() << "]";
       });
     }
-    std::cout << "Improving\n";
 
     if (m_incrementalCrossing.getTotalNumCrossings() == 0) continue;
+    std::cout << "Improving\n";
 
     m_instance.m_timer.timer_move_op();
-    for (int i = 0; i < 50; ++i)
+    for (int i = 0; i < m_numImprovementIters; ++i)
     {
       vertex_t v = random.getRandom(embedded);
       if (tried.contains(v)) continue;
-      tryImprove(v);
+      if (i == 0) calibrate_improve_iterations(v);
+      else tryImprove(v);
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
         WorkType::MOVE_OP);)
@@ -152,6 +155,23 @@ const VertexAssignment& GreedyPlacement::findPlacement()
   }
 
   return m_assignment;
+}
+
+void GreedyPlacement::calibrate_improve_iterations(vertex_t candidate)
+{
+  typedef std::chrono::steady_clock::time_point time_point;
+  time_point begin = std::chrono::steady_clock::now();
+  tryImprove(candidate);
+  time_point end = std::chrono::steady_clock::now();
+  double duration = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count());
+  double limit = static_cast<double>(m_instance.m_timer.get_time_limit_ms() * 1e6);
+
+  m_numImprovementIters = std::max(1ul, std::min(50ul, static_cast<size_t>(
+    (0.04 /
+    (duration / limit)) // <- percentage of time limit
+    / static_cast<double>(m_instance.m_graph.getNbVertices())
+  )));
+  std::cout << "m_numImprovementIters is " << m_numImprovementIters << std::endl;
 }
 
 bool GreedyPlacement::improve_locally(
