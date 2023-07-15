@@ -149,6 +149,27 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
 void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
 {
   //out << "{\"TODO\": 1}";
+  out << "{\n";//start dict
+  auto num_initial = statistics.get_m_num_runs();
+  out << "\"num_initial\" : " << num_initial << ",\n";
+  out << "\"initial_placements\" : [\n";//start list of initial placements
+  for(size_t i = 0; i < num_initial; i++){
+    out << "\t{ \"valid\" : " << statistics.get_m_init_placement_results_i(i).first << ", \"cr\" : " << statistics.get_m_init_placement_results_i(i).second << "}";
+    if(i < (num_initial - 1)) out << ",";
+    out << "\n";
+  }
+  out << "],\n";
+  auto num_reopts = statistics.get_num_m_reopt_results();
+  out << "\"num_reopts\" : " << num_reopts << ",\n";
+  out << "\"reopts\" : [\n";
+  for (size_t i = 0; i < num_reopts; i++) {
+    out << "{ \"method\" : " << statistics.get_m_reopt_results_i(i).first << ", \"cr\" : " << statistics.get_m_reopt_results_i(i).second << "}";
+    if(i < (num_reopts - 1)) out << ",";
+    out << "\n";
+  }
+  out << "]\n";
+  out << "}";
+  /*
   out << "number of runs = " << statistics.get_m_num_runs() << "\n";
   auto num_progress = statistics.get_num_m_progress();
   out << "number of progressions = " << num_progress << "\n";
@@ -209,4 +230,5 @@ void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
     out << "{ method " << statistics.get_m_reopt_results_i(i).first << ", changed the number of crossings by " << statistics.get_m_reopt_results_i(i).second << "}\n";
   }
   out << "]";
+  */
 }
