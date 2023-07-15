@@ -3,6 +3,7 @@
 
 #include "common/crossing_hierarchy.hpp"
 #include <common/kd_tree.hpp>
+#include <cstddef>
 #include <gd_types.hpp>
 #include <common/assignment.hpp>
 #include <verification/incremental_collinear.hpp>
@@ -45,6 +46,8 @@ namespace gd
 
       void visualize_rebuild();
 
+      void calibrate_improve_iterations(vertex_t candidate);
+
     private:
       const Instance& m_instance;
       VertexOrder& m_order;
@@ -61,6 +64,8 @@ namespace gd
       RandomGen m_random;
 
       LocalImprovementToolset* m_localImprovementToolset;
+
+      size_t m_numImprovementIters;
   };
 
 }

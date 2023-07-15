@@ -15,7 +15,7 @@ namespace gd
       SamplingSolver(const Instance& instance)
         : m_instance(instance) {}
 
-      VertexAssignment solve(std::string vis_path);
+      VertexAssignment solve(std::string vis_path, double fraction_initial_placement = 0.2);
 
     private:
       std::unique_ptr<point_id_t[]> solve_instance(
