@@ -19,7 +19,7 @@
 
 using namespace gd;
 
-VertexAssignment SamplingSolver::solve(std::string vis_path)
+VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_initial_placement)
 {
   std::cout << "===========================\n";
   std::cout << "Instance statistics\n";
@@ -38,6 +38,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
   size_t best_idx = UINT_UNDEF;
   size_t num_valid = 0;
 
+  std::cout << "NOTE: Investing ~" << (fraction_initial_placement * 100) << "\% of the time limit into finding initial placements.\n";
   size_t idx = 0;
   do{
     std::unique_ptr<PlacementVisualizer> visualizer;
@@ -65,7 +66,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path)
     idx++;
     std::cout << "NOTE: Timelimit at " << (m_instance.m_timer.get_fraction_time_limit() * 100) << "%.\n";
     if (valid && num_crossings == 0) break;
-  } while(m_instance.m_timer.get_fraction_time_limit() < 0.2
+  } while(m_instance.m_timer.get_fraction_time_limit() < fraction_initial_placement
         || (!isDefined(best_idx) && !m_instance.m_timer.time_limit()));
 
   if (num_valid == 0)
