@@ -13,7 +13,7 @@ namespace gd
     Instance(Graph&& graph, PointSet&& points)
       : m_graph(graph), m_points(points),
         m_timer()
-        STATS(COMMA m_stats(m_timer))
+        STATS(COMMA m_stats(m_timer, graph.getNbVertices(), graph.getNbEdges(), points.getNumPoints()))
         {}
 
     Graph m_graph;

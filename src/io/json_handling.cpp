@@ -4,6 +4,7 @@
 #include "common/pointset.hpp"
 #include "gd_types.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -15,6 +16,8 @@
 
 #include <common/assignment.hpp>
 #include <io/printing.hpp>
+
+#include <common/run_statistics.hpp>
 
 using namespace gd;
 using namespace rapidjson;
@@ -145,5 +148,109 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
 
 void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
 {
-  out << "{\"TODO\": 1}";
+  //out << "{\"TODO\": 1}";
+  out << "{\n";//start dict
+  out << "\"num_nodes\" : " << statistics.get_num_nodes() << ",\n";
+  out << "\"num_edges\" : " << statistics.get_num_edges() << ",\n";
+  out << "\"num_points\" : " << statistics.get_num_points() << ",\n";
+  out << "\"time_cr\" : " << statistics.get_time_CR() << ",\n";
+  out << "\"time_coll\" : " << statistics.get_time_COLL() << ",\n";
+  out << "\"time_local_sat\" : " << statistics.get_time_LOCAL_SAT() << ",\n";
+  out << "\"time_move_op\" : " << statistics.get_time_MOVE_OP() << ",\n";
+  out << "\"time_init\" : " << statistics.get_time_INIT() << ",\n";
+  out << "\"time_coll_re\" : " << statistics.get_time_COLL_RE() << ",\n";
+  out << "\"time_gurobi\" : " << statistics.get_time_GUROBI() << ",\n";
+  out << "\"time_gurobi_build\" : " << statistics.get_time_GUROBI_BUILD() << ",\n";
+  auto num_initial = statistics.get_m_num_runs();
+  out << "\"num_initial\" : " << num_initial << ",\n";
+  out << "\"initial_placements\" :\t[\n";//start list of initial placements
+  for(size_t i = 0; i < num_initial; i++){
+    out << "\t\t\t{ \"valid\" : " << statistics.get_m_init_placement_results_i(i).first << ", \"cr\" : " << statistics.get_m_init_placement_results_i(i).second << "}";
+    if(i < (num_initial - 1)) out << ",";
+    out << "\n";
+  }
+  out << "\t\t\t],\n";
+  auto num_reopts = statistics.get_num_m_reopt_results();
+  out << "\"num_reopts\" : " << num_reopts << ",\n";
+  out << "\"reopts\" :\t\t[\n";
+  for (size_t i = 0; i < num_reopts; i++) {
+    out << "\t\t\t{ \"method\" : " << statistics.get_m_reopt_results_i(i).first << ", \"cr\" : " << statistics.get_m_reopt_results_i(i).second << "}";
+    if(i < (num_reopts - 1)) out << ",";
+    out << "\n";
+  }
+  out << "\t\t\t],\n";
+
+  auto num_progress = statistics.get_num_m_progress();
+  int current_id = -1;
+  int placed_nodes = 0;
+  int move_opts = 0;
+  int reopts = 0;
+  int coll_rebuilds = 0;
+  int deaths = 0;
+  int handled_placements = 0;
+  out << "\"placements_detailed\" :\t[\n";
+  bool started_final_placement = false;
+  out << "\t\t\t{\n\t\t\t\"initial_placement\" : " << 0 << ",\n";
+  out << "\t\t\t\"node_placement\" : \n\t\t\t[\n";
+  for(size_t i = 0; i < num_progress; i++){
+    auto current = statistics.get_m_progress_i(i);
+    
+    if(handled_placements <= statistics.get_m_num_runs())
+    {
+      if(current_id != current.curr_placement_idx)
+      {
+        current_id = current.curr_placement_idx;
+        move_opts = 0;
+        reopts = 0;
+        coll_rebuilds = 0;
+        deaths = 0;
+        placed_nodes = 0;
+        handled_placements++;
+      }
+      if(current.type == 0) 
+      {
+        if(placed_nodes > -1)
+        {
+          out << "\t\t\t{\"iteration\" : " << i << ", \"vertex_id\" : " <<  placed_nodes << ", \"move_opts\" : " << move_opts << ", \"reopts\" : " << reopts << ", \"coll_rebuilds\" : " << coll_rebuilds << ", \"deaths\" : " << deaths << "}";
+          if(placed_nodes < statistics.get_num_nodes() - 1)
+          {
+            out << ",\n";
+          }
+          else 
+          {
+            out << "\n\t\t\t]\n\t\t\t},\n";
+            if(handled_placements < statistics.get_m_num_runs())
+            {
+              out << "\t\t\t{\n\t\t\t\"initial_placement\" : " << (current.curr_placement_idx + 1) << ",\n";
+              out << "\t\t\t\"node_placement\" :\n\t\t\t[\n";
+            }
+            else
+            {
+              out << "\t\t\t{\n\t\t\t\"final_placement\" : " << current.curr_placement_idx << ",\n";
+              out << "\t\t\t\"improvements\" :\n\t\t\t[\n";
+            }
+          }
+          move_opts = 0;
+          reopts = 0;
+          coll_rebuilds = 0;
+          deaths = 0;
+        }
+        placed_nodes++;
+      }
+      else 
+      {
+        if(current.type == 1) move_opts++;
+        if(current.type == 2) reopts++;
+        if(current.type == 3) coll_rebuilds++;
+        if(current.type == 4) deaths++;
+      }
+    }
+    else 
+    {
+      out << "\t\t\t{\"iteration\" : " << i << ", \"placement_id\" : " <<  current.curr_placement_idx << ", \"type\" : " << current.type << ", \"cr\" : " << current.curr_crossings << ", \"time\" : " << current.time_stamp << "}";
+      if(i < num_progress - 1) out << ",";
+      out << "\n";
+    }
+  }
+  out << "\t\t\t]\n\t\t\t}\n\t\t\t]\n}";
 }

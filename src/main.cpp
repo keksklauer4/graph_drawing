@@ -31,7 +31,7 @@ namespace
   {
     std::stringstream filename;
     create_path(out_file);
-    filename << out_file << "stats.json";
+    filename << out_file << "_" << "stats.json";
 
     std::string name = filename.str();
     std::ofstream out(name);
@@ -52,8 +52,7 @@ namespace
     Verifier verifier{instance, assignment};
     bool valid = verifier.verify(num_crossings);
     std::stringstream filename;
-    filename << out_file << "_" << time_limit_ms
-             << "_" << (valid ? "valid" : "invalid") << "_";
+    filename << out_file << "_" << (valid ? "valid" : "invalid") << "_";
     if (isDefined(num_crossings)) filename << num_crossings;
     else filename << "-1";
     filename << ".json";
