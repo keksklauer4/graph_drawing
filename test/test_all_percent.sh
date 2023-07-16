@@ -43,11 +43,11 @@ run_random_graph "_50_05" $1 $2
 run_random_graph "_50_08" $1 $2
 run_random_graph "_100_01" $1 $2
 run_random_graph "_100_03" $1 $2
-run_random_graph "_1000_01" $1 $2
-run_random_graph "_1000_001" $1 $2
-run_random_graph "_1000_0001" $1 $2
-run_random_graph "_1000_02" $1 $2
-run_random_graph "_1000_0005" $1 $2
+#run_random_graph "_1000_01" $1 $2
+#run_random_graph "_1000_001" $1 $2
+#run_random_graph "_1000_0001" $1 $2
+#run_random_graph "_1000_02" $1 $2
+#run_random_graph "_1000_0005" $1 $2
 }
 
 run_grid_graph(){
