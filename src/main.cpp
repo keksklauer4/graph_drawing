@@ -31,7 +31,7 @@ namespace
   {
     std::stringstream filename;
     create_path(out_file);
-    filename << out_file << "stats.json";
+    filename << out_file << "_" << "stats.json";
 
     std::string name = filename.str();
     std::ofstream out(name);
