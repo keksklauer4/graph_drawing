@@ -7,23 +7,12 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 
-#added line 11-18
-set(GUROBI_INCLUDE_DIRS "/opt/gurobi1002/linux64/include/")
-find_library(GUROBI_LIBRARY
-    NAMES gurobi gurobi100
-    HINTS "/opt/gurobi1002/linux64/"
-    PATH_SUFFIXES lib)
-#set(GUROBI_LIBRARY "/opt/gurobi1002/linux64/lib/libgurobi100.so" "/opt/gurobi1002/linux64/lib/libgurobi.so.10.0.2")
-set(GUROBI_CXX_LIBRARY "/opt/gurobi1002/linux64/lib/libgurobi_c++.a")
-set(GUROBI_CXX_DEBUG_LIBRARY ${GUROBI_CXX_LIBRARY})
-
 set(GD_SAT_SOLVER_INCLUDES external/EvalMaxSAT/lib/EvalMaxSAT/src external/EvalMaxSAT/lib/MaLib/src external/EvalMaxSAT/lib/glucose/src)
 
 set(CMAKE_BUILD_TYPE Release)
-#added external/aabbcc/include/
 set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
                     external/rapidjson/include/ external/HIP/interface/
-                    external/aabbcc/src/ external/aabbcc/include/ ${AABBCC_INCLUDE_DIR}
+                    external/aabbcc/src/ ${AABBCC_INCLUDE_DIR}
                     ${EIGEN3_INCLUDE_DIR}/ external/hclust/
                     ${GD_SAT_SOLVER_INCLUDES}
                     ${GUROBI_INCLUDE_DIRS})
@@ -31,7 +20,6 @@ set(GD_INCLUDE_LIBS external/ src/ # build/external/lemon/ external/lemon/
 set(GD_LINK_LIBS CGAL::CGAL kahip
         Eigen3::Eigen hclust EvalMaxSAT
         aabbcc)
-
 set(GD_GUROBI_LINK_LIBS optimized ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY} debug ${GUROBI_CXX_DEBUG_LIBRARY} ${GUROBI_LIBRARY})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
