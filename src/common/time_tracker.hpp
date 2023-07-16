@@ -27,6 +27,8 @@ namespace gd
 
       double get_fraction_time_limit() const;
 
+      size_t get_time_limit_ms() const { return m_time_limit_ms; }
+
       void timer_crossing() const;
       void timer_collinear() const;
       void timer_local_sat() const;
