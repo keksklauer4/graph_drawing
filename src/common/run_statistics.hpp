@@ -31,7 +31,8 @@ namespace gd
     MOVE_OP = 1,
     REOPT = 2,
     COLLINEARITY_REBUILD = 3,
-    DEATH = 4
+    DEATH = 4,
+    START_OPTIMIZATION = 5
   };
 
   struct CurrentProgress
@@ -75,6 +76,7 @@ namespace gd
     size_t get_num_nodes() const;
     size_t get_num_edges() const;
     size_t get_num_points() const;
+    void starting_optimization(size_t num_crossings);
 
   private:
     const TimeTracker& m_timer;

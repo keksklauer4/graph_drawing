@@ -86,6 +86,7 @@ VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_ini
 
   VertexAssignment assignment = make_assignment(assignments[best_idx].get());
   STATS(m_instance.m_stats.set_current_run(best_idx);)
+  STATS(m_instance.m_stats.starting_optimization(best_crossings);)
 
   MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
   GreedyPlacement placement{m_instance, order, nullptr};

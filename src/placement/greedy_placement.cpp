@@ -81,6 +81,7 @@ void GreedyPlacement::start_placement(const VertexAssignment& assignment)
 
 const VertexAssignment& GreedyPlacement::findPlacement()
 {
+  m_instance.m_timer.timer_initial_placement();
   const auto& pset = m_instance.m_points;
   auto pointsRange = pset.getPointIterator();
 
@@ -106,6 +107,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
         STATS(m_instance.m_stats.set_timestamp_crossings(
           m_incrementalCrossing.getTotalNumCrossings(),
           WorkType::DEATH);)
+        m_instance.m_timer.timer_initial_placement();
         throw std::runtime_error("Can't find a point to map to... :(");
       }
       STATS(m_instance.m_stats.set_timestamp_crossings(
@@ -115,9 +117,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     }
     else
     {
-      m_instance.m_timer.timer_initial_placement();
       placeInitial(vertex, target);
-      m_instance.m_timer.timer_initial_placement();
       embedded.push_back(vertex);
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
@@ -153,6 +153,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     std::cout << "Num crossings: " << m_incrementalCrossing.getTotalNumCrossings() << std::endl;
     std::cout << m_instance.m_timer << std::endl;
   }
+  m_instance.m_timer.timer_initial_placement();
 
   return m_assignment;
 }
