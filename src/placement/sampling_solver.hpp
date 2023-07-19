@@ -15,7 +15,7 @@ namespace gd
       SamplingSolver(const Instance& instance)
         : m_instance(instance) {}
 
-      VertexAssignment solve(std::string vis_path, double fraction_initial_placement = 0.2);
+      VertexAssignment solve(std::string vis_path, double fraction_initial_placement = 0.2, bool fasterImprove = true);
 
     private:
       std::unique_ptr<point_id_t[]> solve_instance(
@@ -27,6 +27,8 @@ namespace gd
     private:
       const Instance& m_instance;
       RandomGen m_random;
+
+      bool m_fasterImprove;
   };
 
 }

@@ -81,9 +81,11 @@ int main(int argc, const char** argv)
   std::string vis_path = "";
   double fraction_initial_placement = 0.2;
   size_t time_limit_ms;
+  int faster = -1;
   app.add_option("-f,--file", file, "File name")->required();
   app.add_option("-o,--out", out_file, "Output file prefix")->required();
   app.add_option("-t,--time", time_limit_ms, "Time limit in milliseconds")->required();
+  app.add_option("--faster", faster, "Faster improvement in initial placement");
   app.add_option("-v,--visualize", vis_path, "Visualization path");
   app.add_option("-i,--initial_placement", fraction_initial_placement,
     "The fraction (in [0,1]) of the time limit to put into finding initial placements (optional).");
@@ -97,8 +99,9 @@ int main(int argc, const char** argv)
   std::cout << "File " << file << std::endl;
   instance_t instance = parseInstanceFromFile(file);
   instance.m_timer.set_time_limit(time_limit_ms);
+  bool fasterImprovement = faster == 1 || (faster != 0 && instance.m_graph.getNbVertices() >= 200) || (faster == -1);
   SamplingSolver solver{instance};
-  VertexAssignment assignment = solver.solve(vis_path, fraction_initial_placement);
+  VertexAssignment assignment = solver.solve(vis_path, fraction_initial_placement, fasterImprovement);
 
   dump_res(instance, assignment, out_file, time_limit_ms);
   return 0;

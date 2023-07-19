@@ -4,6 +4,7 @@
 #include <cassert>
 #include <chrono>
 #include <common/misc.hpp>
+#include <cstddef>
 
 using namespace gd;
 
@@ -102,6 +103,7 @@ std::ostream& gd::operator<<(std::ostream& os, const TimeTracker& timer)
   OUTPUT_TIMER("Coll-rebuild timer: ", timer.get_timer_val(MTIMER_COLLINEAR_REBUILD));
   OUTPUT_TIMER("Gurobi timer:       ", timer.get_timer_val(MTIMER_GUROBI));
   OUTPUT_TIMER("Gurobi model timer: ", timer.get_timer_val(MTIMER_GUROBI_BUILD_MODEL));
+  os << "Time limit:         " << (size_t)(timer.get_fraction_time_limit() * 100) << "%" << std::endl;
   os << "===========================\n";
   return os;
 }

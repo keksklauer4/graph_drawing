@@ -1,10 +1,12 @@
 #include "permutation_functor.hpp"
 #include "common/misc.hpp"
 #include "common/random_gen.hpp"
+#include "common/run_statistics.hpp"
 #include "gd_types.hpp"
 #include "verification/line_crossings.hpp"
 
 #include <cstddef>
+#include <stdexcept>
 #include <verification/incremental_collinear.hpp>
 
 using namespace gd;
@@ -15,6 +17,8 @@ void PermutationFunctor::set_points()
   {
     for (point_id_t p : m_pointIds)
     {
+      if (m_collinear.isPointInvalid(p)) throw std::runtime_error("Bug: Point is invalid?!");
+      if (!m_collinear.isValidCandidate(v, p)) continue;
       m_vertexToPoint.insert(std::make_pair(v, p));
       m_pointToVertex.insert(std::make_pair(p, v));
     }
