@@ -18,12 +18,15 @@ namespace gd
   class MaxEmbeddedVertexOrder : public VertexOrder
   {
     public:
-      MaxEmbeddedVertexOrder(const Instance& instance)
+      MaxEmbeddedVertexOrder(const Instance& instance, vertex_t start = UINT_UNDEF)
         : m_instance(instance)
       {
         m_degree.resize(m_instance.m_graph.getNbVertices());
         std::fill(m_degree.begin(), m_degree.end(), 0);
-        for (vertex_t v = 0; v < m_degree.size(); ++v) m_degreeQueue.push(VertexDegreePair(v, 0));
+        for (vertex_t v = 0; v < m_degree.size(); ++v)
+        {
+          m_degreeQueue.push(VertexDegreePair(v, v == start ? 1 : 0));
+        }
       }
 
       // returns VERTEX_UNDEF if no next vertex

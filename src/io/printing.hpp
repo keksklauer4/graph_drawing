@@ -28,6 +28,16 @@ namespace gd
     return os;
   }
 
+  template<typename K, typename V>
+  std::ostream& operator<<(std::ostream& os, const MultiMap<K,V>& m)
+  {
+    for (const auto& val : m)
+    {
+      os << val << "\n";
+    }
+    return os;
+  }
+
 
   template<typename K, typename V>
   std::ostream& operator<<(std::ostream& os, const std::pair<K,V>& p)
