@@ -148,7 +148,6 @@ void gd::dump_assignment(std::ostream& out, const Instance& instance,
 
 void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
 {
-  //out << "{\"TODO\": 1}";
   out << "{\n";//start dict
   out << "\"num_nodes\" : " << statistics.get_num_nodes() << ",\n";
   out << "\"num_edges\" : " << statistics.get_num_edges() << ",\n";
@@ -192,10 +191,22 @@ void gd::dump_statistics(std::ostream& out, const RunStatistics& statistics)
   bool started_final_placement = false;
   out << "\t\t\t{\n\t\t\t\"initial_placement\" : " << 0 << ",\n";
   out << "\t\t\t\"node_placement\" : \n\t\t\t[\n";
+
+  size_t final_start = 0;
+
   for(size_t i = 0; i < num_progress; i++){
     auto current = statistics.get_m_progress_i(i);
-    
-    if(handled_placements <= statistics.get_m_num_runs())
+    if(current.type == 5)
+    {
+      final_start = i;
+      break;
+    }
+  }
+  std::cout << "final_start " << final_start << std::endl;
+  for(size_t i = 0; i < num_progress; i++){
+    auto current = statistics.get_m_progress_i(i);
+
+    if(handled_placements <= statistics.get_m_num_runs() && i < final_start)
     {
       if(current_id != current.curr_placement_idx)
       {

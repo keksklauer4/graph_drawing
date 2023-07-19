@@ -39,6 +39,8 @@ bool LocalGurobi::optimize(LocalImprovementFunctor& functor)
 
   m_instance.m_timer.timer_gurobi();
   m_model->optimize();
+  // m_model->write("model.mps");
+  // m_model->write("model.mst");
   m_instance.m_timer.timer_gurobi();
   bool found_solution = m_model->get(GRB_IntAttr_SolCount) > 0;
   if (found_solution)
@@ -87,6 +89,12 @@ void LocalGurobi::create_variables()
       if (!isDefined(p) || !m_vars.contains(vertex_point_pair_t{v,p})) return;
 
       m_vars[vertex_point_pair_t{v,p}]->set(GRB_DoubleAttr_Start, 1.0);
+
+      auto range = m_functor->get_points(v);
+      for (auto it = range.first; it != range.second; ++it)
+      {
+        if(it->second != p) m_vars[vertex_point_pair_t{v, it->second}]->set(GRB_DoubleAttr_Start, 0.0);
+      }
     });
   }
 }

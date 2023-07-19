@@ -133,7 +133,6 @@ namespace gd
         auto uRange = m_functor->get_points(*u);
         for (auto v = u + 1; v != vertex_range.second; ++v)
         {
-          if (!graph.connected(*u, *v)) continue; // TODO: only subgraph
           auto vRange = m_functor->get_points(*v);
           line_2d_t line {};
           for (auto pointU = uRange.first; pointU != uRange.second; ++pointU)
@@ -148,22 +147,21 @@ namespace gd
               for (vertex_t mappedVertex : m_assignment)
               {
                 const auto& p = pset.getPoint(m_assignment.getAssigned(mappedVertex));
-                if (gd::isOnLine(line, p))
-                {
-                  func(*u, pointU->second, *v, pointV->second);
-                }
-                else if (graph.connected(*u, mappedVertex))
+                bool collinear = false;
+                if (gd::isOnLine(line, p)) collinear = true;
+                if (!collinear && graph.connected(*u, mappedVertex))
                 {
                   line_2d_t helper = line;
                   helper.second = p.getCoordPair();
-                  if (gd::isOnLine(helper, pV)) func(*u, pointU->second, *v, pointV->second);
+                  if (gd::isOnLine(helper, pV)) collinear = true;
                 }
-                else if (graph.connected(*v, mappedVertex))
+                if (!collinear && graph.connected(*v, mappedVertex))
                 {
                   line_2d_t helper = line;
                   helper.first = p.getCoordPair();
-                  if (gd::isOnLine(helper, pU)) func(*u, pointU->second, *v, pointV->second);
+                  if (gd::isOnLine(helper, pU)) collinear = true;
                 }
+                if (collinear) func(*u, pointU->second, *v, pointV->second);
               }
             }
           }

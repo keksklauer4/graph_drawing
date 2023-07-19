@@ -2,6 +2,8 @@
 #include "gd_types.hpp"
 #include "placement/local/local_reopt.hpp"
 #include "placement/local/permutation_functor.hpp"
+#include "verification/collinear.hpp"
+#include "verification/verifier.hpp"
 
 #include <chrono>
 #include <common/random_gen.hpp>
@@ -35,7 +37,7 @@
 using namespace gd;
 
 
-GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, PlacementVisualizer* vis)
+GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, bool fasterImprove, PlacementVisualizer* vis)
   : m_instance(instance),
     m_order(order),
     m_assignment(instance),
@@ -43,7 +45,9 @@ GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, P
     m_visualizer(vis),
     m_collChecker(), m_incrementalCollinearity(instance, m_assignment, m_collChecker),
     m_incrementalCrossing(instance, m_assignment, m_crossingHierarchy),
-    m_localImprovementToolset(nullptr), m_numImprovementIters(1)
+    m_localImprovementToolset(nullptr), m_numImprovementIters(1),
+    m_kdtree(new KdTree{m_instance.m_points}),
+    m_fasterImprove(fasterImprove)
 {
   if (m_visualizer != nullptr) m_visualizer->setAssignment(m_assignment);
 }
@@ -51,6 +55,7 @@ GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, P
 GreedyPlacement::~GreedyPlacement()
 {
   if (m_localImprovementToolset != nullptr) delete m_localImprovementToolset;
+  delete m_kdtree;
 }
 
 void GreedyPlacement::start_placement(const VertexAssignment& assignment)
@@ -81,6 +86,7 @@ void GreedyPlacement::start_placement(const VertexAssignment& assignment)
 
 const VertexAssignment& GreedyPlacement::findPlacement()
 {
+  m_instance.m_timer.timer_initial_placement();
   const auto& pset = m_instance.m_points;
   auto pointsRange = pset.getPointIterator();
 
@@ -106,6 +112,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
         STATS(m_instance.m_stats.set_timestamp_crossings(
           m_incrementalCrossing.getTotalNumCrossings(),
           WorkType::DEATH);)
+        m_instance.m_timer.timer_initial_placement();
         throw std::runtime_error("Can't find a point to map to... :(");
       }
       STATS(m_instance.m_stats.set_timestamp_crossings(
@@ -115,9 +122,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     }
     else
     {
-      m_instance.m_timer.timer_initial_placement();
       placeInitial(vertex, target);
-      m_instance.m_timer.timer_initial_placement();
       embedded.push_back(vertex);
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
@@ -137,12 +142,14 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     if (m_incrementalCrossing.getTotalNumCrossings() == 0) continue;
     std::cout << "Improving\n";
 
+    size_t current_crossings = m_incrementalCrossing.getTotalNumCrossings();
     m_instance.m_timer.timer_move_op();
     for (int i = 0; i < m_numImprovementIters; ++i)
     {
       vertex_t v = random.getRandom(embedded);
       if (tried.contains(v)) continue;
       if (i == 0) calibrate_improve_iterations(v);
+      else if (m_fasterImprove) fasterImprove(v);
       else tryImprove(v);
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
@@ -150,9 +157,11 @@ const VertexAssignment& GreedyPlacement::findPlacement()
     }
     m_instance.m_timer.timer_move_op();
 
-    std::cout << "Num crossings: " << m_incrementalCrossing.getTotalNumCrossings() << std::endl;
+    std::cout << "Num crossings: " << m_incrementalCrossing.getTotalNumCrossings()
+              << " (before improvement " << current_crossings << ")\n";
     std::cout << m_instance.m_timer << std::endl;
   }
+  m_instance.m_timer.timer_initial_placement();
 
   return m_assignment;
 }
@@ -161,7 +170,8 @@ void GreedyPlacement::calibrate_improve_iterations(vertex_t candidate)
 {
   typedef std::chrono::steady_clock::time_point time_point;
   time_point begin = std::chrono::steady_clock::now();
-  tryImprove(candidate);
+  if (m_fasterImprove) fasterImprove(candidate);
+  else tryImprove(candidate);
   time_point end = std::chrono::steady_clock::now();
   double duration = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count());
   double limit = static_cast<double>(m_instance.m_timer.get_time_limit_ms() * 1e6);
@@ -178,6 +188,7 @@ bool GreedyPlacement::improve_locally(
     LocalGurobi& optimizer, LocalImprovementFunctor& functor,
     vertex_t vertex, point_id_t point)
 {
+  size_t crossings_before = m_incrementalCrossing.getTotalNumCrossings();
   bool valid_start = m_assignment.getAssigned(vertex) == point;
   functor.reset();
   functor.initialize(vertex, point);
@@ -194,7 +205,7 @@ bool GreedyPlacement::improve_locally(
   if (!functor.is_valid())
   {
     functor.get_mapping([&](vertex_t v, point_id_t p){
-      assert(isDefined(p) && "Point is undefined!");
+      if(valid_start && !isDefined(p)) throw std::runtime_error("Point is undefined!");
       if (v != vertex || valid_start)
       {
         m_incrementalCollinearity.place(v, p);
@@ -204,18 +215,43 @@ bool GreedyPlacement::improve_locally(
     });
     return false;
   }
+  else
+  {
+    m_temporaryMapping.clear();
+    functor.get_mapping([&](vertex_t v, point_id_t p){
+      m_temporaryMapping.push_back(VertexPointPair{v, p});
+    });
+  }
   bool valid = optimizer.optimize(*reinterpret_cast<LocalImprovementFunctor*>(&functor));
+  bool feasible = true;
+
   functor.get_mapping([&](vertex_t v, point_id_t p){
-    assert(isDefined(p) && "Point is undefined!");
-    if (v != vertex || valid_start || valid)
+    if (!isDefined(p)) feasible = false;
+    if ((v != vertex || valid_start || valid) && feasible)
     {
-      assert(m_incrementalCollinearity.isValidCandidate(v, p) && "Point is actually invalid!");
+      if(m_assignment.isPointUsed(p) || m_incrementalCollinearity.isPointInvalid(p)
+        || !m_incrementalCollinearity.isValidCandidate(v, p))
+      {
+        std::cout << "ERROR: Bad mapping from " << v << " to " << p << std::endl;
+        std::cout << "point used: " << m_assignment.isPointUsed(p)
+                  << " invalid collinear " << m_incrementalCollinearity.isPointInvalid(p)
+                  << " invalid candidate " << !m_incrementalCollinearity.isValidCandidate(v, p)
+                  << std::endl;
+        feasible = false;
+      }
+      if (!feasible) return;
       m_incrementalCollinearity.place(v, p);
       m_incrementalCrossing.place(v, p);
       m_assignment.assign(v, p);
     }
   });
-  if (m_visualizer != nullptr)
+
+  if (!feasible || m_incrementalCrossing.getTotalNumCrossings() > (crossings_before+3))
+  { // not a bug - its a "feature..." :D
+    rollback_reopt_bug(!feasible);
+  }
+
+  if (feasible && m_visualizer != nullptr)
   {
     m_visualizer->draw([&](std::ostream& stream){
       stream << "Gurobi local opt [total: "
@@ -223,6 +259,46 @@ bool GreedyPlacement::improve_locally(
     });
   }
   return valid;
+}
+
+void GreedyPlacement::rollback_reopt_bug(bool infeasible)
+{
+  if (infeasible) std::cout << "ERROR: Infeasibility bug occurred!\n";
+  else std::cout << "ERROR: Another weird bug occurred where Gurobi did not accept the start solution (my fault :D).\n";
+
+  for (const auto& mapped : m_temporaryMapping)
+  {
+    if (m_assignment.isAssigned(mapped.vertex))
+    {
+      m_incrementalCollinearity.deplace(mapped.vertex);
+      m_incrementalCrossing.deplace(mapped.vertex, m_assignment.getAssigned(mapped.vertex));
+      m_assignment.unassign(mapped.vertex);
+    }
+  }
+
+  for (const auto& mapped : m_temporaryMapping)
+  {
+    m_incrementalCollinearity.place(mapped.vertex, mapped.point);
+    m_incrementalCrossing.place(mapped.vertex, mapped.point);
+    m_assignment.assign(mapped.vertex, mapped.point);
+  }
+
+  if (infeasible)
+  {
+    Verifier verifier{m_instance, m_assignment};
+    size_t num_crossings = UINT_UNDEF;
+    bool valid = verifier.verify(num_crossings);
+    if (!valid)
+    {
+      std::cout << "ERROR: We are still invalid! Distinct (and all mapped): "
+                << verifier.distinct()
+                << " collinearity " << !gd::trivialCollinearityCheck(m_instance, m_assignment)
+                << std::endl;
+      throw std::runtime_error("Some bug killed us :(");
+    }
+    else std::cout << "NOTE: We are valid again.\n";
+  }
+  std::cout << "NOTE: Finished rollback.\n";
 }
 
 size_t GreedyPlacement::placeInitial(vertex_t vertex, point_id_t target)
@@ -275,37 +351,19 @@ bool GreedyPlacement::improve(size_t num_tries)
   ShortTermVertexSet tried{};
   RandomGen random{};
 
-  if (m_localImprovementToolset == nullptr)
-  {
-    m_localImprovementToolset = new LocalImprovementToolset{
-      m_instance, m_assignment, m_incrementalCollinearity
-    };
-  }
   size_t previous_crossings = m_incrementalCrossing.getTotalNumCrossings();
 
   for (size_t iter = 0; iter < num_tries && !m_instance.m_timer.time_limit(); ++iter)
   {
-    vertex_t candidate = m_localImprovementToolset->m_random.getRandomUint(m_instance.m_graph.getNbVertices());
-   STATS( size_t before = m_incrementalCrossing.getTotalNumCrossings();)
-    auto& functor = m_localImprovementToolset->getRandomFunctor();
-    improve_locally(m_localImprovementToolset->optimizer,
-        functor, candidate,
-        m_assignment.getAssigned(candidate));
-    STATS(size_t now = m_incrementalCrossing.getTotalNumCrossings();)
-    STATS(m_instance.m_stats.set_timestamp_crossings(
-        now,
-        WorkType::REOPT);)
-    STATS(m_instance.m_stats.set_local_reopt_result(
-        functor.type(),
-        ((int64_t)now) - ((int64_t)before));)
+    run_reopt(random.getRandomUint(m_instance.m_graph.getNbVertices()));
 
     for (size_t i = 0; i < 100 && !m_instance.m_timer.time_limit(); ++i)
     {
-      candidate = VERTEX_UNDEF;
+      size_t candidate = VERTEX_UNDEF;
       candidate = random.getRandomUint(m_instance.m_graph.getNbVertices());
       if (tried.contains(candidate)) continue;
       tried.insert(candidate);
-      tryImprove(candidate);
+      fasterImprove(candidate);
       STATS(m_instance.m_stats.set_timestamp_crossings(
         m_incrementalCrossing.getTotalNumCrossings(),
         WorkType::MOVE_OP);)
@@ -314,11 +372,32 @@ bool GreedyPlacement::improve(size_t num_tries)
   return m_incrementalCrossing.getTotalNumCrossings() < previous_crossings;
 }
 
+void GreedyPlacement::run_reopt(vertex_t candidate)
+{
+  if (m_localImprovementToolset == nullptr)
+  {
+    m_localImprovementToolset = new LocalImprovementToolset{
+      m_instance, m_assignment, m_incrementalCollinearity
+    };
+  }
+  auto& functor = m_localImprovementToolset->getRandomFunctor();
+  STATS(size_t before = m_incrementalCrossing.getTotalNumCrossings();)
+  improve_locally(m_localImprovementToolset->optimizer,
+    functor, candidate,
+    m_assignment.getAssigned(candidate));
+  STATS(size_t now = m_incrementalCrossing.getTotalNumCrossings();)
+  STATS(m_instance.m_stats.set_local_reopt_result(
+      functor.type(),
+      ((int64_t)now) - ((int64_t)before));)
+  STATS(m_instance.m_stats.set_timestamp_crossings(now, WorkType::REOPT);)
+}
+
 bool GreedyPlacement::tryImprove(vertex_t vertex)
 {
   bool success = false;
-  m_incrementalCollinearity.deplace(vertex);
   size_t num_crossings = m_incrementalCrossing.getNumCrossings(vertex);
+  if (num_crossings == 0) return false;
+  m_incrementalCollinearity.deplace(vertex);
   point_id_t best = m_assignment.getAssigned(vertex);
   auto previous = m_assignment.getAssigned(vertex);
   m_incrementalCrossing.deplace(vertex, best);
@@ -326,16 +405,16 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
 
   size_t previous_crossings = num_crossings;
 
-  for (const auto& point : m_instance.m_points)
+  for (point_id_t point_id : m_assignment.getUnusedPoints())
   {
-    if (m_assignment.isPointUsed(point.id)
-      || !m_incrementalCollinearity.isValidCandidate(vertex, point.id)) continue;
+    if (m_assignment.isPointUsed(point_id)
+      || !m_incrementalCollinearity.isValidCandidate(vertex, point_id)) continue;
 
-    size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, point.id, num_crossings);
+    size_t crossings = m_incrementalCrossing.calculateCrossing(vertex, point_id, num_crossings);
 
     if (crossings < num_crossings)
     {
-      best = point.id;
+      best = point_id;
       num_crossings = crossings;
       success = true;
       if (num_crossings == 0) break;
@@ -361,6 +440,76 @@ bool GreedyPlacement::tryImprove(vertex_t vertex)
   }
 
   return success;
+}
+
+bool GreedyPlacement::fasterImprove(vertex_t candidate)
+{
+  size_t num_crossings = m_incrementalCrossing.getNumCrossings(candidate);
+  if (num_crossings == 0) return false;
+  m_incrementalCollinearity.deplace(candidate);
+  point_id_t best = m_assignment.getAssigned(candidate);
+  point_id_t previous_point = best;
+  auto previous = m_assignment.getAssigned(candidate);
+  m_incrementalCrossing.deplace(candidate, best);
+  m_assignment.unassign(candidate);
+
+  size_t previous_crossings = num_crossings;
+
+  m_checkedPoints.clear();
+
+  double x = 0; double y = 0; size_t num = 0;
+  auto neighborIt = m_instance.m_graph.getNeighborIterator(candidate);
+  for (auto it = neighborIt.first; it != neighborIt.second; ++it)
+  {
+    if (m_assignment.isAssigned(*it))
+    {
+      const auto& npoint = m_instance.m_points.getPoint(m_assignment.getAssigned(*it));
+      x += npoint.x;
+      y += npoint.y;
+      num++;
+    }
+  }
+  x /= num; y /= num;
+  checkNearestNeighborMoves(candidate, Point {UINT_UNDEF, (coordinate_t)x, (coordinate_t)y},
+                            num_crossings, best);
+  checkNearestNeighborMoves(candidate, m_instance.m_points.getPoint(previous_point),
+                            num_crossings, best);
+  m_checkedPoints.clear();
+
+  m_incrementalCollinearity.place(candidate, best);
+  m_incrementalCrossing.place(candidate, best);
+  m_assignment.assign(candidate, best);
+
+  if (previous_crossings > num_crossings && m_visualizer != nullptr)
+  {
+    m_visualizer->draw([&](std::ostream& s){
+        s << "FastMoving vertex " << candidate << " from point "
+          << previous << " (" << previous_crossings
+          << " crossings)  to " << best << " ("
+          << num_crossings << " crossings). [total: "
+          << m_incrementalCrossing.getTotalNumCrossings() << "]";
+    });
+  }
+  return previous_crossings < num_crossings;
+}
+
+#define NUM_VALID_CHECK 30
+void GreedyPlacement::checkNearestNeighborMoves(
+    vertex_t candidate, Point around, size_t& best_crossings,
+    point_id_t& best_point)
+{
+  m_kdtree->k_nearest_neighbors(around, NUM_VALID_CHECK,
+    [&](point_id_t p) -> bool {
+      if (m_assignment.isPointUsed(p) || m_checkedPoints.contains(p)
+        || m_incrementalCollinearity.isPointInvalid(p)) return false;
+      m_checkedPoints.insert(p);
+      if (!m_incrementalCollinearity.isValidCandidate(candidate, p)) return false;
+      size_t crossings = m_incrementalCrossing.calculateCrossing(candidate, p, best_crossings);
+      if (crossings >= best_crossings) return true;
+      best_crossings = crossings;
+      best_point = p;
+      return true;
+  });
 }
 
 constexpr size_t DESTRUC_SIZE = 3;
@@ -466,14 +615,12 @@ bool GreedyPlacement::rebuild_collinear(vertex_t v)
     {
       m_random.shuffle(rebuild_vec);
       success = rebuild(rebuild_vec);
-      // std::cout << "Success " << success << std::endl;
       if (success) visualize_rebuild();
       if (success) return true;
     }
   }
 
 
-  // std::cout << "Resetting\n";
   // Reset to original setting again
   for (const auto& mapped : mapping)
   {
@@ -486,7 +633,6 @@ bool GreedyPlacement::rebuild_collinear(vertex_t v)
   LocalGurobi optimizer{m_instance, m_assignment};
   for (point_id_t bad_point : points)
   {
-    // std::cout << "Trying with point " << bad_point << std::endl;
     for (size_t i = 0; i != 10; ++i)
     {
       CollinearFunctor func {m_instance, m_assignment, m_incrementalCollinearity};
@@ -522,7 +668,6 @@ void GreedyPlacement::collinear_tedious(
   MultiMap<vertex_t, point_id_t>& mapping, VertexSet& vset)
 {
   auto range = m_incrementalCollinearity.getCollinearTriplets(p);
-  // std::cout << "Num before " << m_assignment.getUnusedPoints().size() << std::endl;
   for(auto it = range.first; it != range.second; ++it)
   {
     auto v1 = m_assignment.getAssignedVertex(it->second.first);
@@ -537,7 +682,6 @@ void GreedyPlacement::collinear_tedious(
         m_incrementalCollinearity.deplace(v1);
         m_incrementalCrossing.deplace(v1, m_assignment.getAssigned(v1));
         m_assignment.unassign(v1);
-        // std::cout << "Adding " << v1 << std::endl;
       }
       if (!vset.contains(v2))
       {
@@ -547,10 +691,8 @@ void GreedyPlacement::collinear_tedious(
         m_incrementalCollinearity.deplace(v2);
         m_incrementalCrossing.deplace(v2, m_assignment.getAssigned(v2));
         m_assignment.unassign(v2);
-        // std::cout << "Adding " << v2 << std::endl;
       }
     }
-    // std::cout << "Num " << m_assignment.getUnusedPoints().size() << std::endl;
   }
 }
 
@@ -561,7 +703,6 @@ bool GreedyPlacement::rebuild(VertexVector& rebuild_vec)
   size_t idx = 0;
   for (vertex_t next : rebuild_vec)
   {
-    // std::cout << "Vertex " << next << std::endl;
     point_id_t target = findEligiblePoint(next);
     if (!isDefined(target)) break;
     m_incrementalCollinearity.place(next, target);
@@ -569,7 +710,6 @@ bool GreedyPlacement::rebuild(VertexVector& rebuild_vec)
     m_assignment.assign(next, target);
     idx++;
   }
-  // std::cout << "rebuild size " << rebuild_vec.size() << "  " << idx << std::endl;
   if (idx == rebuild_vec.size()) success = true;
   else
   {

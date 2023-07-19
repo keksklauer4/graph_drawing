@@ -139,3 +139,9 @@ size_t RunStatistics::get_num_points() const
 {
   return m_num_points;
 }
+
+void RunStatistics::starting_optimization(size_t num_crossings)
+{
+  m_progress.push_back(CurrentProgress{m_curr_placement_idx, num_crossings,
+    m_timer.get_fraction_time_limit(), WorkType::START_OPTIMIZATION});
+}

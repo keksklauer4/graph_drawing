@@ -13,8 +13,6 @@ namespace gd
         : m_instance(instance), m_assignment(assignment) {}
 
       bool verify(size_t& num_crossings) const;
-
-    private:
       bool distinct() const;
 
     private:

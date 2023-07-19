@@ -19,7 +19,7 @@
 
 using namespace gd;
 
-VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_initial_placement)
+VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_initial_placement, bool fasterImprove)
 {
   std::cout << "===========================\n";
   std::cout << "Instance statistics\n";
@@ -39,6 +39,8 @@ VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_ini
   size_t num_valid = 0;
 
   std::cout << "NOTE: Investing ~" << (fraction_initial_placement * 100) << "\% of the time limit into finding initial placements.\n";
+  std::cout << "NOTE: Setting fasterImprove to " << (fasterImprove ? "true.\n" : "false.\n");
+  m_fasterImprove = fasterImprove;
   size_t idx = 0;
   do{
     std::unique_ptr<PlacementVisualizer> visualizer;
@@ -86,9 +88,10 @@ VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_ini
 
   VertexAssignment assignment = make_assignment(assignments[best_idx].get());
   STATS(m_instance.m_stats.set_current_run(best_idx);)
+  STATS(m_instance.m_stats.starting_optimization(best_crossings);)
 
   MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
-  GreedyPlacement placement{m_instance, order, nullptr};
+  GreedyPlacement placement{m_instance, order, m_fasterImprove, nullptr};
   placement.start_placement(assignment);
   size_t iter = 0;
   while(!m_instance.m_timer.time_limit())
@@ -104,6 +107,8 @@ VertexAssignment SamplingSolver::solve(std::string vis_path, double fraction_ini
     std::cout << "Now      " << placement.getNumCrossings() << " crossings" << std::endl;
     std::cout << "Time passed: " << round(m_instance.m_timer.get_fraction_time_limit() * 100) << "%" << std::endl;
     std::cout << "===========================\n";
+
+    std::cout << m_instance.m_timer << std::endl;
   }
 
   const auto& greedy_sol = placement.getAssignment();
@@ -125,7 +130,7 @@ std::unique_ptr<point_id_t[]> SamplingSolver::solve_instance(
   STATS(m_instance.m_stats.new_run();)
   try {
     MaxEmbeddedVertexOrder order{m_instance, m_random.getRandomUint(m_instance.m_graph.getNbVertices())};
-    GreedyPlacement placement{m_instance, order, visualizer};
+    GreedyPlacement placement{m_instance, order, m_fasterImprove, visualizer};
     const auto& res = placement.findPlacement();
 
     Verifier verifier{m_instance, res};
@@ -138,7 +143,8 @@ std::unique_ptr<point_id_t[]> SamplingSolver::solve_instance(
       if (res.isAssigned(v)) assignment[v] = res.getAssigned(v);
     }
     return assignment;
-  } catch (std::runtime_error){
+  } catch (const std::runtime_error& e){
+    std::cout << "ERROR: Failed initial placement with error message \'" << e.what() << "’" << std::endl;
     valid = false;
     num_crossings = UINT_UNDEF;
     return std::unique_ptr<point_id_t[]>();
