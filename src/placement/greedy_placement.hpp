@@ -30,6 +30,7 @@ namespace gd
     private:
       size_t placeInitial(vertex_t vertex, point_id_t target);
       point_id_t findEligiblePoint(vertex_t vertex);
+      point_id_t fasterFindEligiblePoint(vertex_t candidate);
       bool tryImprove(vertex_t candidate);
       bool fasterImprove(vertex_t candidate);
       void checkNearestNeighborMoves(vertex_t candidate, Point around, size_t& best_crossings, point_id_t& best_point);

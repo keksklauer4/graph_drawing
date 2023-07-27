@@ -24,12 +24,12 @@ namespace gd
 
     LocalImprovementFunctor& getRandomFunctor()
     {
-      switch(m_random.getRandomUint(4))
+      switch(m_random.getRandomUint(2))
       {
         case 0: return *reinterpret_cast<LocalImprovementFunctor*>(&m_bombFunctor);
-        case 1: return *reinterpret_cast<LocalImprovementFunctor*>(&m_vertexNeighborFunctor);
+        case 1: return *reinterpret_cast<LocalImprovementFunctor*>(&m_permutationCrater);
         case 2: return *reinterpret_cast<LocalImprovementFunctor*>(&m_permutationCrossing);
-        default: return *reinterpret_cast<LocalImprovementFunctor*>(&m_permutationCrater);
+        default: return *reinterpret_cast<LocalImprovementFunctor*>(&m_vertexNeighborFunctor);
       }
     }
 

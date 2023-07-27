@@ -1,4 +1,5 @@
 #include "greedy_placement.hpp"
+#include "common/assignment.hpp"
 #include "gd_types.hpp"
 #include "placement/local/local_reopt.hpp"
 #include "placement/local/permutation_functor.hpp"
@@ -35,6 +36,27 @@
 #include <placement/local/local_toolset.hpp>
 
 using namespace gd;
+
+namespace
+{
+  Point getInterpolatedPlacedNeighbors(const instance_t& instance, const VertexAssignment& assignment, vertex_t candidate)
+  {
+    double x = 0; double y = 0; size_t num = 0;
+    auto neighborIt = instance.m_graph.getNeighborIterator(candidate);
+    for (auto it = neighborIt.first; it != neighborIt.second; ++it)
+    {
+      if (assignment.isAssigned(*it))
+      {
+        const auto& npoint = instance.m_points.getPoint(assignment.getAssigned(*it));
+        x += npoint.x;
+        y += npoint.y;
+        num++;
+      }
+    }
+    x /= num; y /= num;
+    return Point{UINT_UNDEF, (coordinate_t)x, (coordinate_t)y};
+  }
+}
 
 
 GreedyPlacement::GreedyPlacement(const Instance& instance, VertexOrder& order, bool fasterImprove, PlacementVisualizer* vis)
@@ -102,7 +124,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
   {
     std::cout << "#placed " << num_placed << " (of " << m_instance.m_graph.getNbVertices() << ")" << std::endl;
     point_id_t target = (num_placed > 0 ?
-                        findEligiblePoint(vertex)
+                        fasterFindEligiblePoint(vertex)
                       : m_random.getRandomUint(pset.getNumPoints()));
     if (!isDefined(target))
     {
@@ -144,7 +166,7 @@ const VertexAssignment& GreedyPlacement::findPlacement()
 
     size_t current_crossings = m_incrementalCrossing.getTotalNumCrossings();
     m_instance.m_timer.timer_move_op();
-    for (int i = 0; i < m_numImprovementIters; ++i)
+    for (int i = 0; i < 50; ++i)
     {
       vertex_t v = random.getRandom(embedded);
       if (tried.contains(v)) continue;
@@ -339,6 +361,19 @@ point_id_t GreedyPlacement::findEligiblePoint(vertex_t vertex)
   return best;
 }
 
+point_id_t GreedyPlacement::fasterFindEligiblePoint(vertex_t candidate)
+{
+  m_checkedPoints.clear();
+  size_t num_crossings = UINT_MAX;
+  point_id_t best = UINT_UNDEF;
+
+  checkNearestNeighborMoves(candidate,
+    getInterpolatedPlacedNeighbors(m_instance, m_assignment, candidate),
+                            num_crossings, best);
+
+  return best;
+}
+
 size_t GreedyPlacement::getNumCrossings() const
 {
   return m_incrementalCrossing.getTotalNumCrossings();
@@ -457,20 +492,7 @@ bool GreedyPlacement::fasterImprove(vertex_t candidate)
 
   m_checkedPoints.clear();
 
-  double x = 0; double y = 0; size_t num = 0;
-  auto neighborIt = m_instance.m_graph.getNeighborIterator(candidate);
-  for (auto it = neighborIt.first; it != neighborIt.second; ++it)
-  {
-    if (m_assignment.isAssigned(*it))
-    {
-      const auto& npoint = m_instance.m_points.getPoint(m_assignment.getAssigned(*it));
-      x += npoint.x;
-      y += npoint.y;
-      num++;
-    }
-  }
-  x /= num; y /= num;
-  checkNearestNeighborMoves(candidate, Point {UINT_UNDEF, (coordinate_t)x, (coordinate_t)y},
+  checkNearestNeighborMoves(candidate, getInterpolatedPlacedNeighbors(m_instance, m_assignment, candidate),
                             num_crossings, best);
   checkNearestNeighborMoves(candidate, m_instance.m_points.getPoint(previous_point),
                             num_crossings, best);
